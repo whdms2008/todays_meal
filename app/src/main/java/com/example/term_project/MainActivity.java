@@ -11,18 +11,18 @@ import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
 
+
+    ArrayAdapter<CharSequence> adapter = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
         Spinner spinner = findViewById(R.id.spinner);
         TextView textView;
         textView = findViewById(R.id.textView);
-        String[] items = {"천안", "신관", "예산"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-                //API에 만들어져 있는 R.layout.simple_spinner...를 씀
-                this,android.R.layout.simple_spinner_item, items
-        );
+        adapter = ArrayAdapter.createFromResource(this, R.array.campus, android.R.layout.simple_spinner_dropdown_item);
         //미리 정의된 레이아웃 사용
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
         // 스피너 객체에다가 어댑터를 넣어줌
@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
             // 선택되면
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                textView.setText(items[position]);
+                textView.setText(spinner.getSelectedItem().toString());
             }
 
             // 아무것도 선택되지 않은 상태일 때

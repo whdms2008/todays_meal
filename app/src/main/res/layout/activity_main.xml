@@ -11,22 +11,25 @@
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="318dp"
         app:srcCompat="@drawable/logo" />
 
     <Spinner
         android:id="@+id/spinner"
-        android:layout_width="279dp"
-        android:layout_height="50dp"
-        android:gravity="center_vertical"
-        android:paddingStart="200dp"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginStart="100dp"
+        android:layout_marginEnd="100dp"
         android:spinnerMode="dropdown"
-        tools:ignore="RtlSymmetry,TouchTargetSizeCheck"
-
+        android:textSize="50sp"
+        android:textColor="#000000"
+        android:textAlignment="center"
+        android:background="@drawable/border"
         />
-
     <TextView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/textView"/>
+        android:id="@+id/textView"
+        android:gravity="center"
+        />
 </LinearLayout>
