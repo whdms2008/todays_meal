@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Term_Project</string>
+    <string name="before">전날</string>
+    <string name="next">다음날</string>
 </resources>

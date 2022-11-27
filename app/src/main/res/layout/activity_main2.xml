@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -16,6 +15,7 @@
         android:layout_marginTop="40dp"
         android:layout_marginEnd="100dp"
         android:background="@drawable/border"
+        android:contentDescription="@string/app_name"
         android:spinnerMode="dropdown"
         android:textAlignment="center"
         android:textColor="#000000"
@@ -29,8 +29,11 @@
         android:orientation="horizontal">
 
         <Button
+            android:id="@+id/left_btn"
             android:layout_width="wrap_content"
-            android:layout_height="80dp" />
+            android:layout_height="80dp"
+            android:text="@string/before"
+            android:contentDescription="@string/app_name" />
 
         <TextView
             android:id="@+id/date_view"
@@ -44,13 +47,15 @@
             android:textAlignment="center" />
 
         <Button
+            android:id="@+id/right_btn"
             android:layout_width="wrap_content"
-            android:layout_height="80dp" />
+            android:text="@string/next"
+            android:layout_height="80dp"
+            android:contentDescription="@string/app_name" />
     </LinearLayout>
-
     <TableLayout
         android:layout_width="match_parent"
-        android:layout_height="614dp"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
         android:stretchColumns="0">
 
@@ -65,22 +70,13 @@
         <TextView
             android:id="@+id/breakfast"
             android:layout_width="0dp"
-            android:layout_height="50dp"
-            android:layout_weight="1"
+            android:layout_height="120dp"
             android:autoSizeMaxTextSize="15sp"
             android:autoSizeMinTextSize="10sp"
             android:autoSizeTextType="uniform"
             android:gravity="center"
-            android:textSize="15sp"
-            android:textAlignment="center" />
-<!--        <TextView-->
-<!--            android:id="@+id/breakfast"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:background="#FFFFFF"-->
-<!--            android:textAlignment="center"-->
-<!--            android:textSize="15sp"-->
-<!--            tools:ignore="SmallSp" />-->
+            android:textAlignment="center"
+            android:textSize="15sp" />
 
         <TextView
             android:layout_width="match_parent"
@@ -93,7 +89,10 @@
         <TextView
             android:id="@+id/lunch"
             android:layout_width="match_parent"
-            android:layout_height="100dp"
+            android:layout_height="120dp"
+            android:autoSizeMaxTextSize="15sp"
+            android:autoSizeMinTextSize="10sp"
+            android:autoSizeTextType="uniform"
             android:background="#FFFFFF"
             android:textAlignment="center"
             android:textSize="15sp" />
@@ -109,7 +108,10 @@
         <TextView
             android:id="@+id/dinner"
             android:layout_width="match_parent"
-            android:layout_height="100dp"
+            android:layout_height="120dp"
+            android:autoSizeMaxTextSize="15sp"
+            android:autoSizeMinTextSize="10sp"
+            android:autoSizeTextType="uniform"
             android:background="#FFFFFF"
             android:text="test2"
             android:textAlignment="center"
