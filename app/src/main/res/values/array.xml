@@ -2,7 +2,8 @@
 <resources>
     <string-array name="campus">
         <item>천안</item>
-        <item>신관</item>
         <item>예산</item>
+        <item>은행사/비전</item>
+        <item>드림</item>
     </string-array>
 </resources>

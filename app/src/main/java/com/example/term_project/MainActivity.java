@@ -3,16 +3,15 @@ package com.example.term_project;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
+import android.icu.text.SimpleDateFormat;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
-import android.widget.TableLayout;
 import android.widget.TextView;
 
 import org.jsoup.Jsoup;
@@ -21,6 +20,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.Date;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
     int nums = 0;
@@ -35,13 +36,19 @@ public class MainActivity extends AppCompatActivity {
     final Bundle bundle = new Bundle();
     ArrayAdapter<CharSequence> adapter = null;
 
+    long now = System.currentTimeMillis();
+
+    Date date = new Date(now);
+    @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf = new SimpleDateFormat("MM:dd");
+    String getDate = sdf.format(date);
+    String month = getDate.split(":")[0];
+    String day = getDate.split(":")[1];
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main2);
         Spinner spinner = findViewById(R.id.spinner);
-        dayView = findViewById(R.id.day_1);
+        dayView = findViewById(R.id.date_view);
         adapter = ArrayAdapter.createFromResource(this, R.array.campus, android.R.layout.simple_spinner_dropdown_item);
         //미리 정의된 레이아웃 사용
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
@@ -69,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     Handler handler = new Handler(Looper.getMainLooper()) {
+        @SuppressLint("SetTextI18n")
         @Override
         public void handleMessage(Message msg) {
             Bundle bundle = msg.getData();
@@ -76,38 +84,26 @@ public class MainActivity extends AppCompatActivity {
             new Thread(() -> {
                 Document document;
                 try {
-                    @SuppressLint("CutPasteId") TextView[][] datas = {
-                            {findViewById(R.id.day_1), findViewById(R.id.date_1), findViewById(R.id.breakfast_1), findViewById(R.id.lunch_1), findViewById(R.id.dinner_1)},
-                            {findViewById(R.id.day_2), findViewById(R.id.date_2), findViewById(R.id.breakfast_2), findViewById(R.id.lunch_2), findViewById(R.id.dinner_2)},
-                            {findViewById(R.id.day_3), findViewById(R.id.date_3), findViewById(R.id.breakfast_3), findViewById(R.id.lunch_3), findViewById(R.id.dinner_3)},
-                            {findViewById(R.id.day_4), findViewById(R.id.date_4), findViewById(R.id.breakfast_4), findViewById(R.id.lunch_4), findViewById(R.id.dinner_4)},
-                            {findViewById(R.id.day_5), findViewById(R.id.date_5), findViewById(R.id.breakfast_5), findViewById(R.id.lunch_5), findViewById(R.id.dinner_5)},
-                            {findViewById(R.id.day_6), findViewById(R.id.date_6), findViewById(R.id.breakfast_6), findViewById(R.id.lunch_6), findViewById(R.id.dinner_6)},
-                            {findViewById(R.id.day_7), findViewById(R.id.date_7), findViewById(R.id.breakfast_7), findViewById(R.id.lunch_7), findViewById(R.id.dinner_7)},
-                    };
+                    TextView[] datas =
+                            {findViewById(R.id.date_view), findViewById(R.id.breakfast), findViewById(R.id.lunch), findViewById(R.id.dinner)
+                            };
                     document = Jsoup.connect(campus[nums]).get();
                     Elements elements = document.select("tbody").select("tr"); //필요한 녀석만 꼬집어서 지정
                     System.out.println(campus_name[nums]);
-                    int i = 0;
                     for (Element e : elements) {
-//                        System.out.println(e.select(".day").text());
-//                        System.out.println(e.select("td[data-mqtitle='date']").text());
-//                        System.out.println(e.select("td[data-mqtitle='breakfast']").text());
-//                        System.out.println(e.select("td[data-mqtitle='lunch']").text());
-//                        System.out.println(e.select("td[data-mqtitle='dinner']").text());
-                        datas[i][0].setText(e.select(".day").text());
-                        datas[i][1].setText(e.select("td[data-mqtitle='date']").text());
-                        datas[i][2].setText(e.select("td[data-mqtitle='breakfast']").text());
-                        datas[i][3].setText(e.select("td[data-mqtitle='lunch']").text());
-                        datas[i][4].setText(e.select("td[data-mqtitle='dinner']").text());
-                        i += 1;
+                        String date = e.select("td[data-mqtitle='date']").text();
+                        if (Objects.equals(date, month + "월 " + day + "일")){
+                            System.out.println(month +"월 "+day + "일 ===" + date);
+                            System.out.println(e);
+                            String breakfast = e.select("td[data-mqtitle='breakfast']").text().replace(",","\n");
+                            String lunch = e.select("td[data-mqtitle='lunch']").text();
+                            String dinner = e.select("td[data-mqtitle='dinner']").text();
+                            datas[0].setText(date + "( " + e.select(".day").text() +"요일 )");
+                            datas[1].setText(breakfast);
+                            datas[2].setText(lunch);
+                            datas[3].setText(dinner);
+                        }
                     }
-//                    Elements day = document.select("#food-info > div > table > tbody > tr:nth-child(" + nums + ") > td.noedge-l.first > font");
-//                    Elements date = document.select("#food-info > div > table > tbody > tr:nth-child(" + nums + ") > td:nth-child(2)");
-//                    Elements breakfast = document.select("#food-info > div > table > tbody > tr:nth-child(" + nums + ") > td:nth-child(3)");
-//                    Elements lunch = document.select("#food-info > div > table > tbody > tr:nth-child(" + nums + ") > td:nth-child(4) ");
-//                    Elements dinner = document.select("#food-info > div > table > tbody > tr:nth-child(" + nums + ") > td.noedge-r.last");
-
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
