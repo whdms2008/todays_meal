@@ -3,13 +3,14 @@
     <string-array name="campus">
         <item>천안</item>
         <item>예산</item>
-        <item>은행사/비전</item>
-        <item>드림</item>
+        <item>은행사/비전 ( 신관 )</item>
+        <item>드림 ( 신관 )</item>
     </string-array>
 
 
     <string-array name="type">
         <item>기숙사 식당</item>
-        <item>학생식당</item>
+        <item>학생 식당</item>
+        <item>직원 식당</item>
     </string-array>
 </resources>

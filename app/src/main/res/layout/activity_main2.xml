@@ -46,7 +46,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
+        android:layout_margin="20dp"
         android:orientation="horizontal">
 
         <Button
@@ -62,7 +62,7 @@
             android:layout_height="50dp"
             android:layout_weight="1"
             android:autoSizeMaxTextSize="50dp"
-            android:autoSizeMinTextSize="10dp"
+            android:autoSizeMinTextSize="20dp"
             android:autoSizeTextType="uniform"
             android:gravity="center"
             android:textAlignment="center" />
@@ -91,6 +91,7 @@
         <TextView
             android:id="@+id/breakfast"
             android:layout_width="0dp"
+            android:layout_margin="20dp"
             android:layout_height="120dp"
             android:autoSizeMaxTextSize="15sp"
             android:autoSizeMinTextSize="10sp"
@@ -110,6 +111,7 @@
         <TextView
             android:id="@+id/lunch"
             android:layout_width="match_parent"
+            android:layout_margin="20dp"
             android:layout_height="120dp"
             android:autoSizeMaxTextSize="15sp"
             android:autoSizeMinTextSize="10sp"
@@ -130,6 +132,7 @@
             android:id="@+id/dinner"
             android:layout_width="match_parent"
             android:layout_height="120dp"
+            android:layout_margin="20dp"
             android:autoSizeMaxTextSize="15sp"
             android:autoSizeMinTextSize="10sp"
             android:autoSizeTextType="uniform"

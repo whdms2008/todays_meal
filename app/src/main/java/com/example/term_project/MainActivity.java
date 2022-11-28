@@ -28,14 +28,27 @@ import java.util.Objects;
 public class MainActivity extends AppCompatActivity {
     int nums;
     TextView dayView;
-    String[] food_type = {"기숙사","학생식당"};
+    String[] food_type = {"기숙사 식당","학생식당","직원식당"};
+    String[] campus_name = {"천안", "예산", "은행사/비전 (신관)", "드림 (신관)"};
+    // 특이사항 : 예산은 기숙사 식당이 없고 학생식당, 직원식당만 있음.
+
     String[] campus = {
-            "https://dormi.kongju.ac.kr/HOME/sub.php?code=041303",
-            "https://dormi.kongju.ac.kr/HOME/sub.php?code=041304",
-            "https://dormi.kongju.ac.kr/HOME/sub.php?code=041301",
-            "https://dormi.kongju.ac.kr/HOME/sub.php?code=041302"};
-    // 천안, 예산, 은행사/비전, 드림
-    String[] campus_name = {"천안", "예산", "은행사/비전", "드림"};
+            "https://dormi.kongju.ac.kr/HOME/sub.php?code=041303", // 천안
+            "https://dormi.kongju.ac.kr/HOME/sub.php?code=041304", // 예산
+            "https://dormi.kongju.ac.kr/HOME/sub.php?code=041301", // 은행사/비전 ( 신관 )
+            "https://dormi.kongju.ac.kr/HOME/sub.php?code=041302"}; // 드림 ( 신관 )
+
+    String[] school_cafeteria = {
+            "https://www.kongju.ac.kr/kongju/13157/subview.do", // 천안
+            "https://www.kongju.ac.kr/kongju/13159/subview.do", // 예산
+            "https://www.kongju.ac.kr/kongju/13155/subview.do"  // 신관
+    };
+    String[] staff_cafeteria = {
+            "https://www.kongju.ac.kr/kongju/13158/subview.do", // 천안
+            "https://www.kongju.ac.kr/kongju/13160/subview.do", // 예산
+            "https://www.kongju.ac.kr/kongju/13156/subview.do"  // 신관
+    };
+
     final Bundle bundle = new Bundle();
     ArrayAdapter<CharSequence> campus_adapter = null;
     ArrayAdapter<CharSequence> type_adapter = null;
@@ -67,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
         type_adapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
         spinner2.setAdapter(type_adapter);
 
-        spinner2.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             // 선택되면
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
