@@ -26,8 +26,9 @@ import java.util.Date;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
-    int nums = 0;
+    int nums;
     TextView dayView;
+    String[] food_type = {"기숙사","학생식당"};
     String[] campus = {
             "https://dormi.kongju.ac.kr/HOME/sub.php?code=041303",
             "https://dormi.kongju.ac.kr/HOME/sub.php?code=041304",
@@ -36,7 +37,8 @@ public class MainActivity extends AppCompatActivity {
     // 천안, 예산, 은행사/비전, 드림
     String[] campus_name = {"천안", "예산", "은행사/비전", "드림"};
     final Bundle bundle = new Bundle();
-    ArrayAdapter<CharSequence> adapter = null;
+    ArrayAdapter<CharSequence> campus_adapter = null;
+    ArrayAdapter<CharSequence> type_adapter = null;
 
     long now = System.currentTimeMillis();
 
@@ -47,20 +49,25 @@ public class MainActivity extends AppCompatActivity {
     String month = getDate.split(":")[0];
     String day = getDate.split(":")[1];
     String pos;
-    int select = 0;
+    int select = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
         Spinner spinner = findViewById(R.id.spinner);
+        Spinner spinner2 = findViewById(R.id.food_type);
         dayView = findViewById(R.id.date_view);
-        adapter = ArrayAdapter.createFromResource(this, R.array.campus, android.R.layout.simple_spinner_dropdown_item);
-        //미리 정의된 레이아웃 사용
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
-        // 스피너 객체에다가 어댑터를 넣어줌
-        spinner.setAdapter(adapter);
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        campus_adapter = ArrayAdapter.createFromResource(this, R.array.campus, android.R.layout.simple_spinner_dropdown_item);
+        campus_adapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
+        spinner.setAdapter(campus_adapter);
+
+
+        type_adapter = ArrayAdapter.createFromResource(this, R.array.type, android.R.layout.simple_spinner_dropdown_item);
+        type_adapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
+        spinner2.setAdapter(type_adapter);
+
+        spinner2.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             // 선택되면
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -74,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
             // 아무것도 선택되지 않은 상태일 때
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                bundle.putString("numbers", "-1");                               //핸들러를 이용해서 Thread()에서 가져온 데이터를 메인 쓰레드에 보내준다.
+                bundle.putString("numbers", "-1");
                 Message msg = handler.obtainMessage();
                 msg.setData(bundle);
                 handler.sendMessage(msg);
@@ -122,35 +129,28 @@ public class MainActivity extends AppCompatActivity {
                 Document document;
                 Elements elements;
                 try {
-                    if (nums == -1) {
-                        document = Jsoup.connect(campus[0]).get();
+                    System.out.println(nums);
+                    document = Jsoup.connect(campus[nums == -1 ? 0 :  nums]).get();
+                    elements = document.select("tbody").select("tr"); //필요한 녀석만 꼬집어서 지정
+                    if (select == -1){
                         nums = 0;
-                        elements = document.select("tbody").select("tr"); //필요한 녀석만 꼬집어서 지정
                         int i = 0;
                         for (Element a : elements.select("td[data-mqtitle='date']")) {
                             System.out.println(a.text());
-                            i += 1;
                             if (Objects.equals(a.text(), month + "월 " + day + "일")) {
                                 select = i;
-                                System.out.println(i);
+                                System.out.println("맞음! : "+i);
                                 break;
                             }
+                            i += 1;
                         }
-                    } else {
-                        document = Jsoup.connect(campus[nums]).get();
                     }
                     elements = document.select("tbody").select("tr"); //필요한 녀석만 꼬집어서 지정
-                    System.out.println(month + day);
-                    System.out.println(campus_name[nums]);
                     TextView[] datas =
                             {findViewById(R.id.date_view), findViewById(R.id.breakfast), findViewById(R.id.lunch), findViewById(R.id.dinner)
                             };
                     Element e = elements.get(select); // 날짜 같은 index가 몇번인지 찾아서 해결해보자~
-                    System.out.println(e.text());
                     String date = e.select("td[data-mqtitle='date']").text();
-
-                    System.out.println(month + "월 " + day + "일 ===" + date);
-                    System.out.println(e);
                     String breakfast = e.select("td[data-mqtitle='breakfast']").text().replace(",", "\n");
                     String lunch = e.select("td[data-mqtitle='lunch']").text();
                     String dinner = e.select("td[data-mqtitle='dinner']").text();

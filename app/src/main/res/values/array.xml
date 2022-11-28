@@ -6,4 +6,10 @@
         <item>은행사/비전</item>
         <item>드림</item>
     </string-array>
+
+
+    <string-array name="type">
+        <item>기숙사 식당</item>
+        <item>학생식당</item>
+    </string-array>
 </resources>
