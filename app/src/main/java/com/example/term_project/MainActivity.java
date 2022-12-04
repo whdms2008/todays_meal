@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -53,33 +54,41 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
-        Spinner spinner = findViewById(R.id.spinner);
-        dayView = findViewById(R.id.date_view);
+        View decorView = getWindow().getDecorView();
+        // Hide both the navigation bar and the status bar.
+        // SYSTEM_UI_FLAG_FULLSCREEN is only available on Android 4.1 and higher, but as
+        // a general rule, you should design your app to hide the status bar whenever you
+        // hide the navigation bar.
+        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_FULLSCREEN;
+        decorView.setSystemUiVisibility(uiOptions);
+//        Spinner spinner = findViewById(R.id.spinner);
+//        dayView = findViewById(R.id.date_view);
         adapter = ArrayAdapter.createFromResource(this, R.array.campus, android.R.layout.simple_spinner_dropdown_item);
         //미리 정의된 레이아웃 사용
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
         // 스피너 객체에다가 어댑터를 넣어줌
-        spinner.setAdapter(adapter);
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+//        spinner.setAdapter(adapter);
+//        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             // 선택되면
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                pos = String.valueOf(position);
-                bundle.putString("numbers", pos);                               //핸들러를 이용해서 Thread()에서 가져온 데이터를 메인 쓰레드에 보내준다.
-                Message msg = handler.obtainMessage();
-                msg.setData(bundle);
-                handler.sendMessage(msg);
-            }
-
-            // 아무것도 선택되지 않은 상태일 때
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                bundle.putString("numbers", "-1");                               //핸들러를 이용해서 Thread()에서 가져온 데이터를 메인 쓰레드에 보내준다.
-                Message msg = handler.obtainMessage();
-                msg.setData(bundle);
-                handler.sendMessage(msg);
-            }
-        });
+//            @Override
+//            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+//                pos = String.valueOf(position);
+//                bundle.putString("numbers", pos);                               //핸들러를 이용해서 Thread()에서 가져온 데이터를 메인 쓰레드에 보내준다.
+//                Message msg = handler.obtainMessage();
+//                msg.setData(bundle);
+//                handler.sendMessage(msg);
+//            }
+//
+//            // 아무것도 선택되지 않은 상태일 때
+//            @Override
+//            public void onNothingSelected(AdapterView<?> parent) {
+//                bundle.putString("numbers", "-1");                               //핸들러를 이용해서 Thread()에서 가져온 데이터를 메인 쓰레드에 보내준다.
+//                Message msg = handler.obtainMessage();
+//                msg.setData(bundle);
+//                handler.sendMessage(msg);
+//            }
+//        });
         View.OnClickListener left_click = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -106,10 +115,6 @@ public class MainActivity extends AppCompatActivity {
                 handler.sendMessage(msg);
             }
         };
-        Button btn_left = findViewById(R.id.left_btn);
-        btn_left.setOnClickListener(left_click);
-        Button btn_right = findViewById(R.id.right_btn);
-        btn_right.setOnClickListener(right_click);
     }
 
     Handler handler = new Handler(Looper.getMainLooper()) {
@@ -142,9 +147,9 @@ public class MainActivity extends AppCompatActivity {
                     elements = document.select("tbody").select("tr"); //필요한 녀석만 꼬집어서 지정
                     System.out.println(month + day);
                     System.out.println(campus_name[nums]);
-                    TextView[] datas =
-                            {findViewById(R.id.date_view), findViewById(R.id.breakfast), findViewById(R.id.lunch), findViewById(R.id.dinner)
-                            };
+//                    TextView[] datas =
+//                            {findViewById(R.id.date_view), findViewById(R.id.breakfast), findViewById(R.id.lunch), findViewById(R.id.dinner)
+//                            };
                     Element e = elements.get(select); // 날짜 같은 index가 몇번인지 찾아서 해결해보자~
                     System.out.println(e.text());
                     String date = e.select("td[data-mqtitle='date']").text();
@@ -154,10 +159,10 @@ public class MainActivity extends AppCompatActivity {
                     String breakfast = e.select("td[data-mqtitle='breakfast']").text().replace(",", "\n");
                     String lunch = e.select("td[data-mqtitle='lunch']").text();
                     String dinner = e.select("td[data-mqtitle='dinner']").text();
-                    datas[0].setText(date + "( " + e.select(".day").text() + "요일 )");
-                    datas[1].setText(breakfast);
-                    datas[2].setText(lunch);
-                    datas[3].setText(dinner);
+//                    datas[0].setText(date + "( " + e.select(".day").text() + "요일 )");
+//                    datas[1].setText(breakfast);
+//                    datas[2].setText(lunch);
+//                    datas[3].setText(dinner);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

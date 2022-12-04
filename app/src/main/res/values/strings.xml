@@ -2,4 +2,9 @@
     <string name="app_name">Term_Project</string>
     <string name="before">전날</string>
     <string name="next">다음날</string>
+    <string name="morning">조식</string>
+    <string name="lunch">중식</string>
+    <string name="dinner">석식</string>
+    <string name="campus">캠퍼스</string>
+    <string name="menu">메뉴</string>
 </resources>

@@ -3,118 +3,68 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_gravity="center_vertical"
     android:orientation="vertical"
+    android:layout_weight="0.3"
     tools:context=".MainActivity">
-
-    <Spinner
-        android:id="@+id/spinner"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_marginStart="100dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginEnd="100dp"
-        android:background="@drawable/border"
-        android:contentDescription="@string/app_name"
-        android:spinnerMode="dropdown"
-        android:textAlignment="center"
-        android:textColor="#000000"
-        android:textSize="50sp" />
-
-
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/left_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="80dp"
-            android:text="@string/before"
-            android:contentDescription="@string/app_name" />
-
-        <TextView
-            android:id="@+id/date_view"
-            android:layout_width="0dp"
-            android:layout_height="50dp"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        android:layout_weight="0.1"
+        android:background="#AFD485"
+        >
+        <LinearLayout
             android:layout_weight="1"
-            android:autoSizeMaxTextSize="50dp"
-            android:autoSizeMinTextSize="10dp"
-            android:autoSizeTextType="uniform"
-            android:gravity="center"
-            android:textAlignment="center" />
+            android:padding="10dp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            >
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="천안"
+                android:textAlignment="textEnd"
+                />
+            <TextView
+                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:textAlignment="textEnd"
+                android:text="기숙사 식당"
+                />
+        </LinearLayout>
+        <TextView
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="12월 03일"
+            android:textSize="25dp"
+            />
 
-        <Button
-            android:id="@+id/right_btn"
-            android:layout_width="wrap_content"
-            android:text="@string/next"
-            android:layout_height="80dp"
-            android:contentDescription="@string/app_name" />
+        <ImageView
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+
+            tools:srcCompat="@tools:sample/avatars" />
     </LinearLayout>
-    <TableLayout
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@color/white"
+        android:layout_weight="0.7"
+        >
+    </LinearLayout>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:stretchColumns="0">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="30dp"
-            android:background="#D8D8D8"
-            android:text="아침"
-            android:textAlignment="center"
-            android:textSize="19sp" />
-
-        <TextView
-            android:id="@+id/breakfast"
-            android:layout_width="0dp"
-            android:layout_height="120dp"
-            android:autoSizeMaxTextSize="15sp"
-            android:autoSizeMinTextSize="10sp"
-            android:autoSizeTextType="uniform"
-            android:gravity="center"
-            android:textAlignment="center"
-            android:textSize="15sp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="30dp"
-            android:background="#D8D8D8"
-            android:text="점심"
-            android:textAlignment="center"
-            android:textSize="19sp" />
-
-        <TextView
-            android:id="@+id/lunch"
-            android:layout_width="match_parent"
-            android:layout_height="120dp"
-            android:autoSizeMaxTextSize="15sp"
-            android:autoSizeMinTextSize="10sp"
-            android:autoSizeTextType="uniform"
-            android:background="#FFFFFF"
-            android:textAlignment="center"
-            android:textSize="15sp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="30dp"
-            android:background="#D8D8D8"
-            android:text="저녁"
-            android:textAlignment="center"
-            android:textSize="19sp" />
-
-        <TextView
-            android:id="@+id/dinner"
-            android:layout_width="match_parent"
-            android:layout_height="120dp"
-            android:autoSizeMaxTextSize="15sp"
-            android:autoSizeMinTextSize="10sp"
-            android:autoSizeTextType="uniform"
-            android:background="#FFFFFF"
-            android:text="test2"
-            android:textAlignment="center"
-            android:textSize="15sp" />
-    </TableLayout>
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp"
+        app:labelVisibilityMode="labeled"
+        app:itemPaddingBottom="10dp"
+        app:menu="@menu/bottom" />
 </LinearLayout>

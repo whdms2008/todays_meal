@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/sun_rise"
+        android:enabled="true"
+        android:icon="@drawable/sunrise"
+        android:title="@string/morning"/>
+    <item
+        android:id="@+id/sun"
+        android:enabled="true"
+        android:icon="@drawable/sun"
+        android:title="@string/lunch"/>
+    <item
+        android:id="@+id/moon"
+        android:enabled="true"
+        android:icon="@drawable/moon5"
+        android:title="@string/dinner"/>
+    <item
+        android:id="@+id/campus"
+        android:enabled="true"
+        android:title="@string/campus"
+        android:icon="@drawable/school"/>
+    <item
+        android:id="@+id/menu"
+        android:enabled="true"
+        android:icon="@drawable/list"
+        android:title="@string/menu"/>
+</menu>
