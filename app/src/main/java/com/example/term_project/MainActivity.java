@@ -1,20 +1,26 @@
 package com.example.term_project;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.icu.text.SimpleDateFormat;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.Spinner;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationBarView;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -22,7 +28,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Objects;
 
@@ -47,74 +52,76 @@ public class MainActivity extends AppCompatActivity {
     String getDate = sdf.format(date);
     String month = getDate.split(":")[0];
     String day = getDate.split(":")[1];
-    String pos;
+    String pos = "-1";
+    String[] menus;
     int select = 0;
-
+    BottomNavigationView bottomNavigationView;
+    SettingsFragment settingsFragment;
+    TextView cam_name, diner_name, today_date, food_type, food_time;
+    LinearLayout food_menu;
+    @SuppressLint("WrongViewCast")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main2);
+        setContentView(R.layout.activity_main);
         View decorView = getWindow().getDecorView();
-        // Hide both the navigation bar and the status bar.
-        // SYSTEM_UI_FLAG_FULLSCREEN is only available on Android 4.1 and higher, but as
-        // a general rule, you should design your app to hide the status bar whenever you
-        // hide the navigation bar.
+        cam_name = findViewById(R.id.cam_name);
+        diner_name = findViewById(R.id.diner_type);
+        today_date = findViewById(R.id.date);
+        food_type = findViewById(R.id.food_type);
+        food_time = findViewById(R.id.food_time);
+        food_menu = findViewById(R.id.food_menu);
+
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_FULLSCREEN;
         decorView.setSystemUiVisibility(uiOptions);
-//        Spinner spinner = findViewById(R.id.spinner);
-//        dayView = findViewById(R.id.date_view);
-        adapter = ArrayAdapter.createFromResource(this, R.array.campus, android.R.layout.simple_spinner_dropdown_item);
-        //미리 정의된 레이아웃 사용
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
-        // 스피너 객체에다가 어댑터를 넣어줌
-//        spinner.setAdapter(adapter);
-//        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            // 선택되면
-//            @Override
-//            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-//                pos = String.valueOf(position);
-//                bundle.putString("numbers", pos);                               //핸들러를 이용해서 Thread()에서 가져온 데이터를 메인 쓰레드에 보내준다.
-//                Message msg = handler.obtainMessage();
-//                msg.setData(bundle);
-//                handler.sendMessage(msg);
-//            }
-//
-//            // 아무것도 선택되지 않은 상태일 때
-//            @Override
-//            public void onNothingSelected(AdapterView<?> parent) {
-//                bundle.putString("numbers", "-1");                               //핸들러를 이용해서 Thread()에서 가져온 데이터를 메인 쓰레드에 보내준다.
-//                Message msg = handler.obtainMessage();
-//                msg.setData(bundle);
-//                handler.sendMessage(msg);
-//            }
-//        });
-        View.OnClickListener left_click = new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                select -= 1;
-                if (select < 0) {
-                    select += 1;
-                }
-                bundle.putString("numbers", pos);                               //핸들러를 이용해서 Thread()에서 가져온 데이터를 메인 쓰레드에 보내준다.
-                Message msg = handler.obtainMessage();
-                msg.setData(bundle);
-                handler.sendMessage(msg);
+        bottomNavigationView = findViewById(R.id.menus);
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            switch (item.getItemId()){
+                case R.id.sun_rise:
+                    food_type.setText("조식");
+                    bundle.putString("numbers", pos);                               //핸들러를 이용해서 Thread()에서 가져온 데이터를 메인 쓰레드에 보내준다.
+                    Message msg = handler.obtainMessage();
+                    msg.setData(bundle);
+                    handler.sendMessage(msg);
+                    break;
+                case R.id.sun:
+                    food_type.setText("중식");
+                    break;
+                case R.id.moon:
+                    food_type.setText("석식");
+                    break;
+                case R.id.campus:
+                    food_type.setText("조식");
+                    break;
+                case R.id.menu:
+                    food_type.setText("조식");
+                    break;
             }
-        };
-        View.OnClickListener right_click = new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                select += 1;
-                if (select > 6) {
-                    select -= 1;
-                }
-                bundle.putString("numbers", pos);                               //핸들러를 이용해서 Thread()에서 가져온 데이터를 메인 쓰레드에 보내준다.
-                Message msg = handler.obtainMessage();
-                msg.setData(bundle);
-                handler.sendMessage(msg);
-            }
-        };
+            return true;
+        });
+    }
+
+    private void CreateMenu(String[] menus){
+        for(int i = 0; i < menus.length;i++){
+            TextView tv = new TextView(getApplicationContext());
+            tv.setText(menus[i]);
+            tv.setTextColor(Color.parseColor("#000000"));
+            tv.setGravity(Gravity.CENTER);
+            tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+            tv.setTextSize(30);
+            Typeface typeface = getResources().getFont(R.font.scd5);
+            tv.setTypeface(typeface);
+            tv.setId(i);
+            LinearLayout.LayoutParams param = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT
+                    ,LinearLayout.LayoutParams.WRAP_CONTENT);
+            param.leftMargin = 20;
+            param.rightMargin = 20;
+            param.weight = 1;
+            tv.setLayoutParams(param);
+            food_menu.addView(tv);
+        }
     }
 
     Handler handler = new Handler(Looper.getMainLooper()) {
@@ -147,22 +154,31 @@ public class MainActivity extends AppCompatActivity {
                     elements = document.select("tbody").select("tr"); //필요한 녀석만 꼬집어서 지정
                     System.out.println(month + day);
                     System.out.println(campus_name[nums]);
-//                    TextView[] datas =
-//                            {findViewById(R.id.date_view), findViewById(R.id.breakfast), findViewById(R.id.lunch), findViewById(R.id.dinner)
-//                            };
+                    TextView[] datas =
+                            {findViewById(R.id.date)};
+
                     Element e = elements.get(select); // 날짜 같은 index가 몇번인지 찾아서 해결해보자~
                     System.out.println(e.text());
                     String date = e.select("td[data-mqtitle='date']").text();
 
                     System.out.println(month + "월 " + day + "일 ===" + date);
                     System.out.println(e);
-                    String breakfast = e.select("td[data-mqtitle='breakfast']").text().replace(",", "\n");
-                    String lunch = e.select("td[data-mqtitle='lunch']").text();
-                    String dinner = e.select("td[data-mqtitle='dinner']").text();
+                    System.out.println(e.select("td[data-mqtitle='breakfast']").text());
+
+                    String[] breakfast = e.select("td[data-mqtitle='breakfast']").text().split(",");
+                    CreateMenu(breakfast);
+//                    String lunch = e.select("td[data-mqtitle='lunch']").text();
+//                    String dinner = e.select("td[data-mqtitle='dinner']").text();
 //                    datas[0].setText(date + "( " + e.select(".day").text() + "요일 )");
-//                    datas[1].setText(breakfast);
-//                    datas[2].setText(lunch);
-//                    datas[3].setText(dinner);
+                    datas[0].setText("12월 6일");
+
+                    try {
+                        for (int i = 0; i < breakfast.length; i++) {
+                            datas[1+i].setText(breakfast[i]);
+                        }
+                    }catch(Exception exception){
+                        System.out.println("에러!");
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

@@ -1,389 +1,152 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_gravity="center_vertical"
     android:orientation="vertical"
+    android:layout_weight="0.3"
     tools:context=".MainActivity">
-
-<!--    <ImageView-->
-<!--        android:id="@+id/imageView"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="318dp"-->
-<!--        app:srcCompat="@drawable/logo" />-->
-
-    <Spinner
-        android:id="@+id/spinner"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_marginStart="100dp"
-        android:layout_marginEnd="100dp"
-        android:background="@drawable/border"
-        android:spinnerMode="dropdown"
-        android:textAlignment="center"
-        android:textColor="#000000"
-        android:textSize="50sp" />
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        android:layerType="software"
+        android:layout_weight="0.08"
+        android:background="@drawable/dot"
+        >
+        <LinearLayout
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_gravity="center_vertical"
+            >
+            <TextView
+                android:id="@+id/cam_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="천안"
+                android:textAlignment="textEnd"
+                android:textSize="15sp"
+                android:textColor="@color/black"
+                android:fontFamily="@font/scd6"
+                />
+            <TextView
+                android:id="@+id/diner_type"
+                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:textAlignment="textEnd"
+                android:textSize="15sp"
+                android:textColor="@color/black"
+                android:text="기숙사 식당"
+                android:fontFamily="@font/scd6"
+                />
+        </LinearLayout>
+        <TextView
+            android:id="@+id/date"
+            android:layout_weight="1.4"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="12월 03일"
+            android:textAlignment="center"
+            android:textSize="33sp"
+            android:textColor="@color/black"
+            android:layout_gravity="center_vertical"
+            android:fontFamily="@font/scd6"
+            tools:ignore="RtlCompat" />
 
+        <ImageView
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:src="@drawable/bell"/>
+    </LinearLayout>
 
-    <TableLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="614dp"
-        android:layout_marginTop="50dp"
-        android:gravity="center"
-        android:stretchColumns="0, 1, 2, 3, 4">
+        android:layout_height="0dp"
+        android:layout_weight="0.75"
+        android:background="@color/white"
+        android:orientation="vertical"
+        android:paddingTop="40dp"
+        android:paddingBottom="200dp">
 
-        <TableRow>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.15"
+            android:background="@drawable/border_radius_top"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+
+            tools:ignore="NestedWeights">
+
+            <ImageView
+                android:id="@+id/food_type_icon"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_weight="0.05"
+                android:padding="6dp"
+                android:src="@drawable/sun" />
 
             <TextView
-                android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:background="#D8D8D8"
-                android:text="요일"
+                android:id="@+id/food_type"
+                android:layout_width="0dp"
+                android:padding="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.07"
+                android:fontFamily="@font/scd5"
+                android:text="중식"
                 android:textAlignment="center"
-                android:textSize="19sp" />
+                android:gravity="center"
+                android:textColor="@color/black"
+                android:textSize="25sp" />
 
             <TextView
-                android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:background="#D8D8D8"
-                android:text="날짜"
-                android:textAlignment="center"
-                android:textSize="19sp" />
+                android:id="@+id/food_time"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.3"
+                android:paddingStart="9dp"
+                android:fontFamily="@font/scd5"
+                android:gravity="center_vertical"
+                android:text="11:30 ~ 13:30"
+                android:textColor="@color/black"
+                android:textSize="19sp"
+                tools:ignore="RtlSymmetry" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:background="#D8D8D8"
-                android:text="아침"
-                android:textAlignment="center"
-                android:textSize="19sp" />
+        </LinearLayout>
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:background="#D8D8D8"
-                android:text="점심"
-                android:textAlignment="center"
-                android:textSize="19sp" />
+        <LinearLayout
+            android:id="@+id/food_menu"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="30dp"
+            android:layout_weight="1"
+            android:background="@drawable/border_radius_bottom"
+            android:padding="30dp"
+            android:orientation="vertical"
+            >
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:background="#D8D8D8"
-                android:text="저녁"
-                android:textAlignment="center"
-                android:textSize="19sp" />
-        </TableRow>
+        </LinearLayout>
+    </LinearLayout>
 
-        <TableRow>
-
-            <TextView
-                android:id="@+id/day_1"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/date_1"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/breakfast_1"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center"
-                tools:ignore="SmallSp" />
-
-            <TextView
-                android:id="@+id/lunch_1"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/dinner_1"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-        </TableRow>
-
-        <TableRow>
-
-            <TextView
-                android:id="@+id/day_2"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/date_2"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/breakfast_2"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/lunch_2"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/dinner_2"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-        </TableRow>
-
-        <TableRow>
-
-            <TextView
-                android:id="@+id/day_3"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/date_3"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/breakfast_3"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/lunch_3"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/dinner_3"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-        </TableRow>
-
-        <TableRow>
-
-            <TextView
-                android:id="@+id/day_4"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/date_4"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/breakfast_4"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/lunch_4"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/dinner_4"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-        </TableRow>
-
-        <TableRow>
-
-            <TextView
-                android:id="@+id/day_5"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/date_5"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/breakfast_5"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/lunch_5"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/dinner_5"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-        </TableRow>
-
-        <TableRow>
-
-            <TextView
-                android:id="@+id/day_6"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/date_6"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/breakfast_6"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/lunch_6"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/dinner_6"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-        </TableRow>
-
-        <TableRow>
-
-            <TextView
-                android:id="@+id/day_7"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/date_7"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/breakfast_7"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/lunch_7"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/dinner_7"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:textSize="15sp"
-                android:background="#FFFFFF"
-                android:textAlignment="center" />
-
-        </TableRow>
-    </TableLayout>
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/menus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp"
+        app:labelVisibilityMode="labeled"
+        app:itemPaddingBottom="10dp"
+        android:fontFamily="@font/scd5"
+        app:menu="@menu/bottom" />
 </LinearLayout>
