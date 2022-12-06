@@ -4,26 +4,29 @@
     <item
         android:id="@+id/sun_rise"
         android:enabled="true"
-        android:icon="@drawable/sunrise"
+        android:icon="@drawable/sunrise_icon2"
         android:title="@string/morning"/>
     <item
         android:id="@+id/sun"
         android:enabled="true"
-        android:icon="@drawable/sun"
+        android:icon="@drawable/breakefast_icon"
         android:title="@string/lunch"/>
     <item
         android:id="@+id/moon"
         android:enabled="true"
-        android:icon="@drawable/moon5"
+        android:icon="@drawable/dinner_icon"
         android:title="@string/dinner"/>
     <item
         android:id="@+id/campus"
         android:enabled="true"
         android:title="@string/campus"
-        android:icon="@drawable/school"/>
+        android:icon="@drawable/school_icon">
+
+
+    </item>
     <item
         android:id="@+id/menu"
         android:enabled="true"
-        android:icon="@drawable/list"
+        android:icon="@drawable/list_icon"
         android:title="@string/menu"/>
 </menu>

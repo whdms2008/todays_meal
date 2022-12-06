@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:background="@drawable/round_bg"
+    android:layout_margin="30dp"
+    android:orientation="vertical"
+
+    >
+    <TextView
+        android:fontFamily="@font/scd6"
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="캠퍼스 선택"
+        android:textAlignment="center"
+        android:textSize="20sp"
+        android:padding="10dp"
+        android:background="@drawable/border_radius_top"
+        >
+
+
+    </TextView>
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        >
+        <RadioButton
+            android:id="@+id/radio_1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="천안"
+            android:layout_weight="1"
+            android:background="@drawable/radio_selector"
+            android:textColor="@drawable/radio_text_selector"
+            android:button="@null"
+            android:gravity="center"
+            android:fontFamily="@font/scd5"
+
+            >
+
+        </RadioButton>
+        <RadioButton
+            android:id="@+id/radio_2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="예산"
+            android:layout_weight="1"
+            android:background="@drawable/radio_selector"
+            android:textColor="@drawable/radio_text_selector"
+            android:button="@null"
+            android:gravity="center"
+            android:fontFamily="@font/scd5"
+            >
+
+        </RadioButton>
+        <RadioButton
+            android:id="@+id/radio_3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/radio_selector"
+            android:textColor="@drawable/radio_text_selector"
+            android:text="신관"
+            android:button="@null"
+            android:gravity="center"
+            android:layout_weight="1"
+            android:fontFamily="@font/scd5"
+            >
+
+        </RadioButton>
+
+
+    </RadioGroup>
+
+    <TextView
+        android:fontFamily="@font/scd6"
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="식당 선택"
+        android:textAlignment="center"
+        android:textSize="20sp"
+        android:padding="10dp"
+        android:background="@color/main_green"
+        >
+
+
+    </TextView>
+    <RadioGroup
+        android:id="@+id/select_rooom_rdg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_weight="0.3"
+        >
+
+        <RadioButton
+            android:id="@+id/select_room_1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/radio_selector"
+            android:textColor="@drawable/radio_text_selector"
+            android:text="기숙사 식당"
+            android:button="@null"
+            android:gravity="center"
+            android:layout_weight="1"
+            android:fontFamily="@font/scd5"
+            >
+
+        </RadioButton>
+        <RadioButton
+            android:id="@+id/select_room_2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/radio_selector"
+            android:textColor="@drawable/radio_text_selector"
+            android:text="학생 식당"
+            android:button="@null"
+            android:gravity="center"
+            android:layout_weight="1"
+            android:fontFamily="@font/scd5"
+            >
+
+        </RadioButton>
+        <RadioButton
+            android:id="@+id/select_room_3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/radio_selector"
+            android:textColor="@drawable/radio_text_selector"
+            android:text="교직원 식당"
+            android:button="@null"
+            android:gravity="center"
+            android:layout_weight="1"
+            android:fontFamily="@font/scd5"
+            >
+
+        </RadioButton>
+
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/food_rooms_show"
+        android:fontFamily="@font/scd6"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="기숙사 선택"
+        android:textAlignment="center"
+        android:textSize="20sp"
+        android:padding="10dp"
+        android:background="@color/main_green"
+        >
+
+
+    </TextView>
+
+    <RadioGroup
+        android:id="@+id/food_rooms"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_weight="0.3"
+        >
+
+
+    </RadioGroup>
+
+    <LinearLayout
+        android:layout_weight="0.3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/noBtn"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="아니오" />
+
+        <Button
+            android:id="@+id/yesBtn"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="네" />
+    </LinearLayout>
+
+</LinearLayout>
