@@ -5,18 +5,15 @@ import androidx.core.content.res.ResourcesCompat;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
-import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.icu.text.SimpleDateFormat;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -54,20 +51,20 @@ public class MainActivity extends AppCompatActivity {
             {"https://dormi.kongju.ac.kr/HOME/sub.php?code=041304"}, // 예산 생활관 식당 [ X ]
             {"https://dormi.kongju.ac.kr/HOME/sub.php?code=041301",  // 신관 생활관 식당 [ 은행사/비전 ]
                     "https://dormi.kongju.ac.kr/HOME/sub.php?code=041302"}}; // 신관 생활관 식당 [ 드림 ]
-    String[][] datas = {
-                    {"https://dormi.kongju.ac.kr/HOME/sub.php?code=041303", // 천안 생활관 식당 [ 천안 ]
-                    "https://dormi.kongju.ac.kr/HOME/sub.php?code=041304", // 예산 생활관 식당 [ X ]
-                    "https://dormi.kongju.ac.kr/HOME/sub.php?code=041301",  // 신관 생활관 식당 [ 은행사/비전 ]
-                      "https://dormi.kongju.ac.kr/HOME/sub.php?code=041302"}, // 신관 생활관 식당 [ 드림 ]},
-
-                    {"https://www.kongju.ac.kr/kongju/13157/subview.do", // 천안 학생식
-                            "https://www.kongju.ac.kr/kongju/13159/subview.do", // 예산 학생식당
-                            "https://www.kongju.ac.kr/kongju/13155/subview.do"},
-
-                    {"https://www.kongju.ac.kr/kongju/13158/subview.do", // 천안 직원식당
-                            "https://www.kongju.ac.kr/kongju/13160/subview.do", // 예산 직원식당
-                            "https://www.kongju.ac.kr/kongju/13156/subview.do"}
-    };
+//    String[][] datas = {
+//            {"https://dormi.kongju.ac.kr/HOME/sub.php?code=041303", // 천안 생활관 식당 [ 천안 ]
+//                    "https://dormi.kongju.ac.kr/HOME/sub.php?code=041304", // 예산 생활관 식당 [ X ]
+//                    "https://dormi.kongju.ac.kr/HOME/sub.php?code=041301",  // 신관 생활관 식당 [ 은행사/비전 ]
+//                    "https://dormi.kongju.ac.kr/HOME/sub.php?code=041302"}, // 신관 생활관 식당 [ 드림 ]},
+//
+//            {"https://www.kongju.ac.kr/kongju/13157/subview.do", // 천안 학생식
+//                    "https://www.kongju.ac.kr/kongju/13159/subview.do", // 예산 학생식당
+//                    "https://www.kongju.ac.kr/kongju/13155/subview.do"},
+//
+//            {"https://www.kongju.ac.kr/kongju/13158/subview.do", // 천안 직원식당
+//                    "https://www.kongju.ac.kr/kongju/13160/subview.do", // 예산 직원식당
+//                    "https://www.kongju.ac.kr/kongju/13156/subview.do"}
+//    };
 
     // datas[식당 종류][캠퍼스]
     // datas[0] = 생활관
@@ -91,11 +88,24 @@ public class MainActivity extends AppCompatActivity {
             "https://www.kongju.ac.kr/kongju/13159/subview.do", // 예산 학생식당
             "https://www.kongju.ac.kr/kongju/13155/subview.do"}; //신관 학생식당
 
+
+    String[] today_menus = {"", "", ""}; // 조식메뉴, 중식, 석식
+    String[] student_name = {"천안", "예산", "신관"};
+
     String[] staff_restaurant = {
             "https://www.kongju.ac.kr/kongju/13158/subview.do", // 천안 직원식당
             "https://www.kongju.ac.kr/kongju/13160/subview.do", // 예산 직원식당
             "https://www.kongju.ac.kr/kongju/13156/subview.do"};// 신관 직원식당
 
+    String[][] restaurants = {{}, {
+            "https://www.kongju.ac.kr/kongju/13157/subview.do", // 천안 학생식당
+            "https://www.kongju.ac.kr/kongju/13159/subview.do", // 예산 학생식당
+            "https://www.kongju.ac.kr/kongju/13155/subview.do"},
+            {
+                    "https://www.kongju.ac.kr/kongju/13158/subview.do", // 천안 직원식당
+                    "https://www.kongju.ac.kr/kongju/13160/subview.do", // 예산 직원식당
+                    "https://www.kongju.ac.kr/kongju/13156/subview.do"}
+    };
 
     //https://www.kongju.ac.kr/kongju/13155/subview.do 신관 학생식당
     //https://www.kongju.ac.kr/kongju/13156/subview.do 식관 직원식당
@@ -112,18 +122,20 @@ public class MainActivity extends AppCompatActivity {
     String[] campus_food_name = {"천안", "예산", "은행사/비전", "드림"};
     String[] dinner_type_name = {"기숙사 식당", "학생식당", "교직원식당"};
     String[] food_time = {"07:30 ~ 09:00", "11:30 ~ 13:30", "17:30 ~ 19:00"};
-    String[][] food_room_name = {{"천안"}, {""}, {"은행사/비전", "드림"}};
+    String[][] food_room_name = {{"천안"}, {"예산"}, {"은행사/비전", "드림"}};
     final Bundle bundle = new Bundle();
 
     long now = System.currentTimeMillis();
 
     Date date = new Date(now);
     @SuppressLint("SimpleDateFormat")
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyy:MM:dd");
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy:MM:dd:HH:mm");
     String getDate = sdf.format(date);
     String year = getDate.split(":")[0];
     String month = getDate.split(":")[1];
     String day = getDate.split(":")[2];
+    String hour = getDate.split(":")[3];
+    String minute = getDate.split(":")[4];
 
     String[] menus;
     String foods;
@@ -134,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
     int[] food_icon = {R.drawable.sunrise_icon2, R.drawable.breakefast_icon, R.drawable.dinner_icon};
     Dialog dialog01;
 
-    @SuppressLint("WrongViewCast")
+    @SuppressLint({"WrongViewCast", "NonConstantResourceId"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -146,22 +158,22 @@ public class MainActivity extends AppCompatActivity {
         // datas[0][1][0] = 예산 기숙사
         // datas[0][2][0] = 신관 기숙사 [ 은행사/비전 ]
         // datas[0][2][1] = 신관 기숙사 [ 드림 ]
-        
+
         // datas[1] = 학생식당
         // datas[1][0][0] = 천안 학생식당
         // datas[1][1][0] = 예산 학생식당
         // datas[1][2][0] = 신관 학생식당
-        
+
         // datas[2] = 직원식당
         // datas[2][0][0] = 천안 직원식당
         // datas[2][1][0] = 예산 직원식당
         // datas[2][2][0] = 신관 직원식당
-        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View view = inflater.inflate(R.layout.popup, null);
+//        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+//        View view = inflater.inflate(R.layout.popup, null);
 
 
         View decorView = getWindow().getDecorView();
-        AtomicInteger Temporary_num = new AtomicInteger();
+//        AtomicInteger Temporary_num = new AtomicInteger();
         cam_name = findViewById(R.id.cam_name);
         diner_name = findViewById(R.id.diner_type);
         today_date = findViewById(R.id.date);
@@ -169,6 +181,7 @@ public class MainActivity extends AppCompatActivity {
         food_time_view = findViewById(R.id.food_time);
         food_menu = findViewById(R.id.food_menu);
         food_type_icon = findViewById(R.id.food_type_icon);
+
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_FULLSCREEN;
         decorView.setSystemUiVisibility(uiOptions);
@@ -248,6 +261,7 @@ public class MainActivity extends AppCompatActivity {
     };
 
 
+    @SuppressLint("SetTextI18n")
     private void popup() {
         runOnUiThread(() -> {
             dialog01.show(); // 다이얼로그 띄우기
@@ -269,7 +283,7 @@ public class MainActivity extends AppCompatActivity {
             // 기본 상태 invisibility
 
             // ==========캠퍼스 고르기 Temporary_num = 캠퍼스 종류 [ 0, 1, 2 ]===========
-            
+
             campus_1.setOnClickListener(view -> {
                 Temporary_num.set(0);
                 if (Integer.parseInt(String.valueOf(Temporary_food_type_num)) == 0) {
@@ -309,7 +323,7 @@ public class MainActivity extends AppCompatActivity {
                 int food_room_num = Integer.parseInt(String.valueOf(Temporary_num));
                 String[] food_room_len = food_room_name[food_room_num];
                 System.out.println(food_room_num + ", " + food_room_len[0]);
-                if (Objects.equals(food_room_len[0], "")) {
+                if (Objects.equals(food_room_len[0], "예산")) {
                     Temporary_food_type_num.set(1);
                     select_room_view.check(R.id.select_room_2);
                     room_show.setVisibility(View.GONE);
@@ -339,137 +353,106 @@ public class MainActivity extends AppCompatActivity {
                 // select_campus : 어디 캠퍼스인지
                 //
                 select_campus = Integer.parseInt(String.valueOf(Temporary_num));
+                today_date.setText(month + "월 " + day + "일");
                 select_room = Integer.parseInt(String.valueOf(Temporary_food_type_num));
-                select_food_room = Integer.parseInt(String.valueOf(Temporary_food_room_num));
-                cam_name.setText(food_room_name[select_campus][select_food_room]);
+                diner_name.setText(dinner_type_name[select_room]);
+                if (select_room == 0) {
+                    select_food_room = Integer.parseInt(String.valueOf(Temporary_food_room_num));
+                    cam_name.setText(food_room_name[select_campus][select_food_room]);
+                } else {
+                    cam_name.setText(student_name[select_campus]);
+                }
+                int f_hour = Integer.parseInt(hour);
+                int f_minute = Integer.parseInt(minute);
 
+                if (f_hour < 19) {
+
+                    findViewById(R.id.moon).performClick();
+                }
+                if (f_hour < 13 && f_minute < 30) {
+
+                    findViewById(R.id.sun).performClick();
+                }
+                if (f_hour < 9) {
+                    findViewById(R.id.sun_rise).performClick();
+                }
+                System.out.println(hour + "시 " + minute + " 분");
+                today_menus[0] = "";
+                today_menus[1] = "";
+                today_menus[2] = "";
                 dialog01.dismiss(); // 다이얼로그 닫기
             });
         });
     }
+    // select_campus : 선택한 캠퍼스 변수
+    // select_room : 기숙사 식당, 학생식당, 교직원식당 구분
+    // select_food_room : 기숙사 선택시, 몇번 기숙사 인지
+    // nums : 조식, 중식, 석식 인지 구분 [ 0 ~ 2 ]
 
+    @SuppressLint("SetTextI18n")
     private void load_food(int nums) {
         try {
             Document document;
             Elements elements;
             System.out.println(select_campus + ", " + select_room);
-            String[] web_call =
-                    {"tbody", "tr", "td[data-mqtitle='date']", food_time_type[nums]};
-            if (select_room == 0) {
-                System.out.println("0번 [ 기숙사 임 ]");
-                document = Jsoup.connect(campus[select_campus][select_food_room]).get();
-                elements = document.select(web_call[0]).select(web_call[1]); //필요한 녀석만 꼬집어서 지정
-                int i = 0;
-                for (Element a : elements.select(web_call[2])) {
-                    if (Objects.equals(a.text(), month + "월 " + day + "일")) {
-                        select = i;
-                        break;
-                    }
-                    i += 1;
+            if ((Objects.equals(today_menus[0], "") && Objects.equals(today_menus[1], "")) && Objects.equals(today_menus[2], "")) {
+                if (select_room != 0) {
+                    document = Jsoup.connect(restaurants[select_room][select_campus]).get();
+                } else {
+                    document = Jsoup.connect(campus[select_campus][select_food_room]).get();
                 }
-                food_type_icon.setImageDrawable(ResourcesCompat.getDrawable(getResources(), food_icon[nums], null));
-                Element e = elements.get(select);
-                String date = e.select("td[data-mqtitle='date']").text();
-                runOnUiThread(() -> {
-                    food_menu.removeAllViews();
-                    cam_name.setText(campus_food_name[select_campus]);
-                    diner_name.setText(dinner_type_name[select_room]);
-                    foods = e.select(food_time_type[nums]).text();
-                    today_date.setText(date);
-                    food_time_view.setText(food_time[nums]);
-                    if (foods.length() != 0) {
-                        menus = foods.split(" ");
-                        for (String menu : menus) {
-                            food_menu.addView(makeMenu(menu));
-                        }
-                    } else {
-                        food_menu.addView(makeMenu("밥 없어요~!!"));
-                    }
-                });
-            } else if (select_room == 1){
-                String[] times = {"","tr[class='_even']","tr[class='_odd']"};
-                System.out.println("학생식당");
-                String[] web_call2 =
-                        {"tbody", "tr", "td[data-mqtitle='date']", food_time_type[nums]};
-                document = Jsoup.connect(student_restaurant[select_campus]).get();
-                if (nums == 0){
-                    elements = document.select("tbody").select("tr"); //필요한 녀석만 꼬집어서 지정
-                }
-                else if(nums == 1){
-                    elements = document.select("tbody").select("tr"); //필요한 녀석만 꼬집어서 지정
-                }else{
-
-                    elements = document.select("tbody").select("tr"); //필요한 녀석만 꼬집어서 지정
-                }
-                int i = 0;
-                for (Element a : document.select("thead").select("tr").select("span")) {
-                    System.out.println(a);
-                    if (Objects.equals(a.text(), year+"."+month + "." + day)) {
-                        System.out.println("맞음 : "+ a.text()+ year+"."+month+"."+day);
-                        select = i;
-                        break;
-                    }
-                    i += 1;
-                }
-                for (Element b : elements){
-                    System.out.println(b);
-                }
-
-                // 위 selector로 불러온 엘리먼트의 문자 값으로 중식, 석식 구분해서 잘 해보록.
-//                food_type_icon.setImageDrawable(ResourcesCompat.getDrawable(getResources(), food_icon[nums], null));
-//                Element e = elements.get(select);
-//                String date = e.select("td[data-mqtitle='date']").text();
-//                runOnUiThread(() -> {
-//                    food_menu.removeAllViews();
-//                    cam_name.setText(campus_food_name[select_campus]);
-//                    diner_name.setText(dinner_type_name[select_room]);
-//                    foods = e.select(food_time_type[nums]).text();
-//                    today_date.setText(date);
-//                    food_time_view.setText(food_time[nums]);
-//                    if (foods.length() != 0) {
-//                        menus = foods.split(" ");
-//                        for (String menu : menus) {
-//                            food_menu.addView(makeMenu(menu));
-//                        }
-//                    } else {
-//                        food_menu.addView(makeMenu("밥 없어요~!!"));
-//                    }
-//                });
-            }else if (select_room == 2){
-                System.out.println("직원식당");
-                String[] web_call2 =
-                        {"tbody", "tr", "td[data-mqtitle='date']", food_time_type[nums]};
-                document = Jsoup.connect(campus[select_campus][select_room]).get();
                 elements = document.select("tbody").select("tr"); //필요한 녀석만 꼬집어서 지정
                 int i = 0;
-                for (Element a : document.select("thead").select("tr")) {
-                    System.out.println(a);
-                    if (Objects.equals(a.text(), month + "월 " + day + "일")) {
-                        select = i;
-                        break;
-                    }
-                    i += 1;
-                }
-                food_type_icon.setImageDrawable(ResourcesCompat.getDrawable(getResources(), food_icon[nums], null));
-                Element e = elements.get(select);
-                String date = e.select("td[data-mqtitle='date']").text();
-                runOnUiThread(() -> {
-                    food_menu.removeAllViews();
-                    cam_name.setText(campus_food_name[select_campus]);
-                    diner_name.setText(dinner_type_name[select_room]);
-                    foods = e.select(food_time_type[nums]).text();
-                    today_date.setText(date);
-                    food_time_view.setText(food_time[nums]);
-                    if (foods.length() != 0) {
-                        menus = foods.split(" ");
-                        for (String menu : menus) {
-                            food_menu.addView(makeMenu(menu));
+
+                if (select_room != 0) {
+                    for (Element a : document.select("thead").select("tr").select("span")) {
+                        System.out.println(i + "번 : " + a);
+                        if (Objects.equals(a.text(), year + "." + month + "." + day)) {
+                            select = i;
+                            break;
                         }
-                    } else {
-                        food_menu.addView(makeMenu("밥 없어요~!!"));
+                        i += 1;
                     }
-                });
+                    String title;
+                    for (int e_cnt = 0; e_cnt < elements.size(); e_cnt++) {
+                        title = elements.get(e_cnt).select("th").text();
+                        if (Objects.equals(title, "조식")) {
+                            today_menus[0] = elements.get(e_cnt).select("td").get(select).text();
+                        } else if (Objects.equals(title, "중식")) {
+                            today_menus[1] = elements.get(e_cnt).select("td").get(select).text();
+                        } else {
+                            today_menus[2] = elements.get(e_cnt).select("td").get(select).text();
+                        }
+                    }
+                } else {
+                    for (Element a : elements.select("td[data-mqtitle='date']")) {
+                        if (Objects.equals(a.text(), month + "월 " + day + "일")) {
+                            select = i;
+                            break;
+                        }
+                        i += 1;
+                    }
+                    food_type_icon.setImageDrawable(ResourcesCompat.getDrawable(getResources(), food_icon[nums], null));
+                    Element e = elements.get(select);
+                    today_menus[0] = e.select(food_time_type[0]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
+                    today_menus[1] = e.select(food_time_type[1]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
+                    today_menus[2] = e.select(food_time_type[2]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
+                }
+            } else {
+                System.out.println("같은 캠퍼스임!" + select_campus);
             }
+            runOnUiThread(() -> {
+                food_menu.removeAllViews();
+                food_time_view.setText(food_time[nums]);
+                if (today_menus[nums].length() != 0 && !Objects.equals(today_menus[nums], "등록된 식단내용이(가) 없습니다.")) {
+                    menus = today_menus[nums].split(" ");
+                    for (String menu : menus) {
+                        food_menu.addView(makeMenu(menu));
+                    }
+                } else {
+                    food_menu.addView(makeMenu("밥 없어요~!!"));
+                }
+            });
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -498,8 +481,9 @@ public class MainActivity extends AppCompatActivity {
     private RadioButton makeRadio(String content, int number) {
         RadioButton rdb = new RadioButton(this);
         rdb.setText(content);
-        rdb.setButtonDrawable(getResources().getDrawable(R.drawable.radio_selector));
-        rdb.setBackground(getResources().getDrawable(R.drawable.radio_selector));
+        rdb.setButtonDrawable(getDrawable(R.drawable.radio_selector));
+//        rdb.setButtonDrawable(getResources().getDrawable(R.drawable.radio_selector));
+        rdb.setBackground(getDrawable(R.drawable.radio_selector));
         rdb.setTextColor(getResources().getColorStateList(R.drawable.radio_text_selector));
         rdb.setGravity(Gravity.CENTER);
         Typeface typeface = getResources().getFont(R.font.scd5);

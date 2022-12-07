@@ -129,7 +129,7 @@
             android:layout_height="0dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
-            android:layout_marginBottom="30dp"
+            android:layout_marginBottom="20dp"
             android:layout_weight="1"
             android:elevation="3dp"
             android:background="@drawable/border_radius_bottom"
