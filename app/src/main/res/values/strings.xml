@@ -1,12 +1,12 @@
 <resources>
-    <string name="app_name">Term_Project</string>
+    <string name="app_name">오늘 밥 뭐더라?</string>
     <string name="before">전날</string>
     <string name="next">다음날</string>
     <string name="morning">조식</string>
     <string name="lunch">중식</string>
     <string name="dinner">석식</string>
     <string name="campus">캠퍼스</string>
-    <string name="menu">메뉴</string>
+    <string name="menu">정보</string>
     <!-- Preference Titles -->
     <string name="messages_header">Messages</string>
     <string name="sync_header">Sync</string>

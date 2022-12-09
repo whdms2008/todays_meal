@@ -27,6 +27,6 @@
     <item
         android:id="@+id/menu"
         android:enabled="true"
-        android:icon="@drawable/list_icon"
+        android:icon="@drawable/infomation_icon"
         android:title="@string/menu"/>
 </menu>

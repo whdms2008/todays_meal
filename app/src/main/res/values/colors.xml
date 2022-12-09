@@ -8,4 +8,8 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="main_green">#AFD485</color>
+    <color name="thema_color_1">#AFD485</color>
+    <color name="thema_color_2">#9AB87A</color>
+    <color name="thema_color_3">#F8F991</color>
+    <color name="thema_color_4">#444B6E</color>
 </resources>

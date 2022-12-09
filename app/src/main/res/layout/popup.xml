@@ -5,12 +5,10 @@
     android:layout_gravity="center"
     android:background="@drawable/round_bg"
     android:layout_margin="30dp"
-    android:orientation="vertical"
-
-    >
+    android:orientation="vertical">
     <TextView
         android:fontFamily="@font/scd6"
-
+        android:textColor="#DA000000"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="캠퍼스 선택"
@@ -78,6 +76,7 @@
     <TextView
         android:fontFamily="@font/scd6"
 
+        android:textColor="#DA000000"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="식당 선택"
@@ -182,7 +181,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="아니오" />
+            android:text="취소" />
 
         <Button
             android:id="@+id/yesBtn"
@@ -190,7 +189,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="네" />
+            android:text="완료" />
     </LinearLayout>
 
 </LinearLayout>
