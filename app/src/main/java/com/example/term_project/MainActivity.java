@@ -7,7 +7,6 @@ import androidx.core.content.res.ResourcesCompat;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
@@ -103,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
     int select_food_room = 0; // 기숙사의 경우 식당 종류
 
     String food_menus = ""; // 기숙사 조식
-    int[] food_icon = {R.drawable.sunrise_icon2, R.drawable.breakefast_icon, R.drawable.dinner_icon};
+    int[] food_icon = {R.drawable.sun_morning, R.drawable.breakfast, R.drawable.dinner_icon};
 
     BottomNavigationView bottomNavigationView;
     TextView cam_name, diner_name, today_date, food_type, food_time_view;
@@ -259,7 +258,6 @@ public class MainActivity extends AppCompatActivity {
                     food_type.setText(food_time_name[nums]);
                     editor.putInt("select_time", nums);
                     editor.apply();
-                    System.out.println("nums저장됨 : " + pref.getInt("select_time", 0));
                     load_food(nums);
                 } else if (nums == 3) {
                     popup(0);
@@ -447,12 +445,8 @@ public class MainActivity extends AppCompatActivity {
         try {
             Document document;
             Elements elements;
-            System.out.println(select_campus + ", " + select_room);
-            System.out.println(today_menus[0] + ", " + today_menus[1] + ", " + today_menus[2]);
             if ((Objects.equals(today_menus[0], "") && Objects.equals(today_menus[1], "")) && Objects.equals(today_menus[2], "")) {
-                System.out.println("공백임");
                 if (select_room != 0) {
-                    System.out.println("0ㅇ 아님");
                     document = Jsoup.connect(restaurants[select_room][select_campus]).get();
                 } else {
                     document = Jsoup.connect(campus[select_campus][select_food_room]).get();
@@ -462,7 +456,6 @@ public class MainActivity extends AppCompatActivity {
 
                 if (select_room != 0) {
                     for (Element a : document.select("thead").select("tr").select("span")) {
-                        System.out.println(i + "번 : " + a);
                         if (Objects.equals(a.text(), year + "." + month + "." + day)) {
                             select = i;
                             break;
@@ -480,7 +473,6 @@ public class MainActivity extends AppCompatActivity {
                             today_menus[2] = elements.get(e_cnt).select("td").get(select).text();
                         }
                     }
-                    System.out.println(today_menus[0] + ", " + today_menus[1] + ", " + today_menus[2]);
                 } else {
                     for (Element a : elements.select("td[data-mqtitle='date']")) {
                         if (Objects.equals(a.text(), month + "월 " + day + "일")) {
@@ -496,12 +488,6 @@ public class MainActivity extends AppCompatActivity {
                     today_menus[2] = e.select(food_time_type[2]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
                     setStringArrayPref(today_menus);
                 }
-//
-//                food_menus1 = pref.getString("food_menus1", "");
-//                food_menus2 = pref.getString("food_menus2", "");
-//                food_menus3 = pref.getString("food_menus3", "");
-            } else {
-                System.out.println("같은 캠퍼스임!" + select_campus);
             }
             runOnUiThread(() -> {
                 food_menu.removeAllViews();

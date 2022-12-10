@@ -4,12 +4,12 @@
     <item
         android:id="@+id/sun_rise"
         android:enabled="true"
-        android:icon="@drawable/sunrise_icon2"
+        android:icon="@drawable/sun_morning"
         android:title="@string/morning"/>
     <item
         android:id="@+id/sun"
         android:enabled="true"
-        android:icon="@drawable/breakefast_icon"
+        android:icon="@drawable/breakfast"
         android:title="@string/lunch"/>
     <item
         android:id="@+id/moon"

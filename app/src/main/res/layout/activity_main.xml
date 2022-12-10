@@ -94,7 +94,7 @@
                 android:layout_marginStart="16dp"
                 android:layout_weight="0.05"
                 android:padding="6dp"
-                android:src="@drawable/breakefast_icon" />
+                android:src="@drawable/sun_morning" />
 
             <TextView
                 android:id="@+id/food_type"

@@ -10,25 +10,17 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.icu.text.SimpleDateFormat;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
-import android.util.Log;
-import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import java.text.ParseException;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
-import java.util.Objects;
 
 
 public class MyService extends Service {
@@ -42,7 +34,7 @@ public class MyService extends Service {
     int[] breakfast = {450, 540};
     int[] lunch = {690, 810};
     int[] dinner = {1050, 1140};
-    int[] drawables = {R.drawable.sunrise_icon, R.drawable.breakefast_icon, R.drawable.dinner_icon};
+    int[] drawables = {R.drawable.sun_morning, R.drawable.breakfast, R.drawable.dinner_icon};
 
     public MyService() {
         System.out.println("생성자!!!");
