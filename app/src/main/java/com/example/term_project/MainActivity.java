@@ -7,6 +7,9 @@ import androidx.core.content.res.ResourcesCompat;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -91,23 +94,27 @@ public class MainActivity extends AppCompatActivity {
     String day = getDate.split(":")[2];
     String hour = getDate.split(":")[3];
     String minute = getDate.split(":")[4];
-
+    String alarm_food_name = "";
+    String alarm_food_type_name = "";
     int select = 0;
     int nums = 0; // 조식, 중식, 석식
     int select_campus = 0; // 캠퍼스 종류
     int select_room = 0; // 식당 종류
     int select_food_room = 0; // 기숙사의 경우 식당 종류
+
     String food_menus = ""; // 기숙사 조식
     int[] food_icon = {R.drawable.sunrise_icon2, R.drawable.breakefast_icon, R.drawable.dinner_icon};
 
     BottomNavigationView bottomNavigationView;
     TextView cam_name, diner_name, today_date, food_type, food_time_view;
-    ImageView food_type_icon;
+    ImageView food_type_icon, notify_icon;
 
     Dialog dialog01;
     Dialog menu_dialog;
 
-    @SuppressLint({"WrongViewCast", "NonConstantResourceId", "SetTextI18n"})
+    boolean notify = false;
+
+    @SuppressLint({"UseCompatLoadingForDrawables", "SetTextI18n", "NonConstantResourceId"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -122,6 +129,9 @@ public class MainActivity extends AppCompatActivity {
         select_room = pref.getInt("select_restaurant", 0);
         select_food_room = pref.getInt("select_dorm_restaurant", 0);
         food_menus = pref.getString("food_menus", "");
+        notify = pref.getBoolean("notify", false);
+        alarm_food_name = pref.getString("alarm_food_name", "");
+        alarm_food_type_name = pref.getString("alarm_food_type_name", "");
 
         cam_name = findViewById(R.id.cam_name);
         diner_name = findViewById(R.id.diner_type);
@@ -147,6 +157,38 @@ public class MainActivity extends AppCompatActivity {
         menu_params.width = LinearLayout.LayoutParams.MATCH_PARENT;
         menu_params.height = LinearLayout.LayoutParams.WRAP_CONTENT;
         menu_dialog.getWindow().setAttributes(menu_params);
+
+
+        notify_icon = findViewById(R.id.notification);
+
+        notify_icon.setOnClickListener(view -> {
+            if (notify) {
+                Toast.makeText(getApplicationContext(),"알람 꺼짐",Toast.LENGTH_SHORT).show();
+                notify = false;
+                editor.putBoolean("notify", false);
+                notify_icon.setImageDrawable(getDrawable(R.drawable.notification));
+                NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                notificationManager.cancelAll();
+            } else {
+                Toast.makeText(getApplicationContext(),"알람 켜짐",Toast.LENGTH_SHORT).show();
+                notify = true;
+                editor.putBoolean("notify", true);
+                notify_icon.setImageDrawable(getDrawable(R.drawable.notification_true));
+                Intent serviceintent = new Intent(this, MyService.class);
+                startService(serviceintent);
+            }
+            editor.apply();
+        });
+        if (notify) {
+            Intent serviceintent = new Intent(this, MyService.class);
+            startService(serviceintent);
+            notify_icon.setImageDrawable(getDrawable(R.drawable.notification_true));
+        } else {
+            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.cancelAll();
+            notify_icon.setImageDrawable(getDrawable(R.drawable.notification));
+
+        }
 
 
         bottomNavigationView = findViewById(R.id.menus);
@@ -190,9 +232,6 @@ public class MainActivity extends AppCompatActivity {
                     Message msg5 = handler.obtainMessage();
                     msg5.setData(bundle);
                     handler.sendMessage(msg5);
-                    Toast.makeText(getApplicationContext(),"Service 시작",Toast.LENGTH_SHORT).show();
-                    Intent serviceintent = new Intent( this, MyService.class );
-                    startService( serviceintent );
                     break;
             }
             return true;
@@ -242,6 +281,9 @@ public class MainActivity extends AppCompatActivity {
                 Button campus_1 = dialog01.findViewById(R.id.radio_1);
                 Button campus_2 = dialog01.findViewById(R.id.radio_2);
                 Button campus_3 = dialog01.findViewById(R.id.radio_3);
+                today_date.setText(month + "월 " + day + "일");
+                select_room = Integer.parseInt(String.valueOf(Temporary_food_type_num));
+                editor.putInt("select_restaurant", select_room);
 
 
                 Button room_type_1 = dialog01.findViewById(R.id.select_room_1);
@@ -287,6 +329,17 @@ public class MainActivity extends AppCompatActivity {
                         room_type_3.performClick();
                     }
                 });
+                int first_chk = pref.getInt("select_campus",0);
+                int first_chk_rest = pref.getInt("select_restaurant",0);
+                int first_chk_dorm = pref.getInt("select_dorm_restaurant",0);
+                if ( first_chk == 0){
+                    campus_1.performClick();
+                }else if(first_chk == 1){
+
+                    campus_2.performClick();
+                }else{
+                    campus_3.performClick();
+                }
 
                 // ================= 식당 종류 선택 ====================
                 // 임시 변수 : Temporary_foo_type_num
@@ -309,6 +362,15 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 });
+                if ( first_chk_rest == 0){
+                    room_type_1.performClick();
+                    food_rooms_view.getChildAt(first_chk_dorm).performClick();
+                }else if(first_chk_rest == 1){
+
+                    room_type_2.performClick();
+                }else{
+                    room_type_3.performClick();
+                }
                 room_type_2.setOnClickListener(view -> {
                     Temporary_food_type_num.set(1);
                     room_show.setVisibility(View.GONE);
@@ -333,15 +395,19 @@ public class MainActivity extends AppCompatActivity {
                     editor.putInt("select_restaurant", select_room);
                     editor.apply();
                     diner_name.setText(dinner_type_name[select_room]);
+                    editor.putString("alarm_food_type_name",dinner_type_name[select_room]);
                     if (select_room == 0) {
                         select_food_room = Integer.parseInt(String.valueOf(Temporary_food_room_num));
 
                         editor.putInt("select_dorm_restaurant", select_food_room);
                         editor.apply();
                         cam_name.setText(food_room_name[select_campus][select_food_room]);
+                        editor.putString("alarm_food_name",food_room_name[select_campus][select_food_room]);
                     } else {
                         cam_name.setText(student_name[select_campus]);
+                        editor.putString("alarm_food_name",student_name[select_campus]);
                     }
+                    editor.apply();
                     int f_hour = Integer.parseInt(hour);
                     int f_minute = Integer.parseInt(minute);
 
@@ -499,6 +565,7 @@ public class MainActivity extends AppCompatActivity {
         });
         return rdb;
     }
+
     private void setStringArrayPref(String[] values) {
         JSONArray a = new JSONArray();
         for (String value : values) {
@@ -506,7 +573,7 @@ public class MainActivity extends AppCompatActivity {
         }
         if (values.length != 0) {
             editor.putString("food_menus", a.toString());
-            System.out.println("확인 : " +a);
+            System.out.println("확인 : " + a);
         } else {
             editor.putString("food_menus", null);
         }

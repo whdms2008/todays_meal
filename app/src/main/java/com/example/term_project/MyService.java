@@ -11,10 +11,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.icu.text.SimpleDateFormat;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
@@ -22,8 +24,10 @@ import androidx.core.app.NotificationCompat;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Objects;
 
 
@@ -33,6 +37,12 @@ public class MyService extends Service {
     String CHANNEL_ID = "whdms1107";
     NotificationManager Notifi_M;
     ServiceThread thread;
+    String menu = "";
+    String[] title = {"조식 메뉴", "중식 메뉴", "석식 메뉴"};
+    int[] breakfast = {450, 540};
+    int[] lunch = {690, 810};
+    int[] dinner = {1050, 1140};
+    int[] drawables = {R.drawable.sunrise_icon, R.drawable.breakefast_icon, R.drawable.dinner_icon};
 
     public MyService() {
         System.out.println("생성자!!!");
@@ -81,98 +91,77 @@ public class MyService extends Service {
         @Override
         public void handleMessage(android.os.Message msg) {
             pref = getSharedPreferences("pref", Activity.MODE_PRIVATE);
-            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            Intent intent = new Intent(MyService.this, MainActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            PendingIntent pendingIntent = PendingIntent.getActivity(MyService.this, 0, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
-            Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                @SuppressLint("WrongConstant")
-                NotificationChannel notificationChannel = new NotificationChannel("my_notification", "n_channel", NotificationManager.IMPORTANCE_HIGH);
-                notificationChannel.setDescription("알림입니다");
-                notificationChannel.setName("알림 설정");
-                assert notificationManager != null;
-                notificationManager.createNotificationChannel(notificationChannel);
+            if (!pref.getBoolean("notify", false)) {
+                return;
             }
+            Calendar cal1 = Calendar.getInstance();
+            int hour = cal1.get(Calendar.HOUR_OF_DAY);
+            int minute = cal1.get(Calendar.MINUTE);
 
-            Calendar cal = Calendar.getInstance();
-            int hour = cal.get(Calendar.HOUR_OF_DAY);
-            int minute = cal.get(Calendar.MINUTE);
-            String menu = "";
-            String title = "";
-            System.out.println("실행!!!");
-            int[] drawables = {R.drawable.sunrise_icon, R.drawable.breakefast_icon, R.drawable.dinner_icon};
-            int num = 0;
-            // 시간 정확하게 하게 바꾸고,, 이미 선택된거 select_id 있으면 그걸로 하시오..
-            if ((hour >= 7 && minute >= 30) && (hour < 11 && select_id != 0)) {
-                select_id = 0;
-                menu = getStringArrayPref(0);
-                title = "조식 메뉴";
-                NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(MyService.this, CHANNEL_ID)
-                        .setAutoCancel(false)
-                        .setOngoing(true)
-                        .setSmallIcon(drawables[num])
-                        .setContentTitle(title)
-                        .setContentText(menu)
-                        .setSound(soundUri)
-                        .setVibrate(new long[]{0, 3000})
-                        .setContentIntent(pendingIntent)
-                        .setDefaults(Notification.DEFAULT_ALL)
-                        .setChannelId("my_notification")
-                        .setColor(Color.parseColor("#ffffff"))
-                        .setStyle(new NotificationCompat.BigTextStyle().bigText(menu));
-//                String asd = String.valueOf(notificationManager.getNotificationChannels().get(0));
-//                Toast.makeText(getApplicationContext(),asd
-//                        ,Toast.LENGTH_LONG).show();
-                notificationManager.cancelAll();
-                notificationManager.notify(0, notificationBuilder.build());
-            }
-            if ((hour >= 11 && minute >= 30) && (hour < 13 && select_id != 1)){
-                select_id = 1;
-                menu = getStringArrayPref(1);
-                title = "중식 메뉴";
-                num = 1;
-                NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(MyService.this, CHANNEL_ID)
-                        .setAutoCancel(false)
-                        .setOngoing(true)
-                        .setSmallIcon(drawables[num])
-                        .setContentTitle(title)
-                        .setContentText(menu)
-                        .setSound(soundUri)
-                        .setVibrate(new long[]{0, 3000})
-                        .setContentIntent(pendingIntent)
-                        .setDefaults(Notification.DEFAULT_ALL)
-                        .setChannelId("my_notification")
-                        .setColor(Color.parseColor("#ffffff"))
-                        .setStyle(new NotificationCompat.BigTextStyle().bigText(menu));
-                notificationManager.cancelAll();
-                notificationManager.notify(0, notificationBuilder.build());
 
-            }
-            if ((hour >= 17 && minute >= 30) && (hour < 19 && select_id != 2)) {
-                select_id = 2;
-                menu = getStringArrayPref(2);
-                title = "석식 메뉴";
-                num = 2;
-                NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(MyService.this, CHANNEL_ID)
-                        .setAutoCancel(false)
-                        .setOngoing(true)
-                        .setSmallIcon(drawables[num])
-                        .setContentTitle(title)
-                        .setContentText(menu)
-                        .setSound(soundUri)
-                        .setVibrate(new long[]{0, 3000})
-                        .setContentIntent(pendingIntent)
-                        .setDefaults(Notification.DEFAULT_ALL)
-                        .setChannelId("my_notification")
-                        .setColor(Color.parseColor("#ffffff"))
-                        .setStyle(new NotificationCompat.BigTextStyle().bigText(menu));
+            int times = (hour * 60) + minute;
+            if (breakfast[0] <= times && times <= breakfast[1]) {
+                if (select_id != 0){
+                    select_id = 0;
+                    Notification();
+                }
+            } else if (lunch[0] <= times && times <= lunch[1]) {
+                if (select_id != 1){
+                    select_id = 1;
+                    Notification();
+                }
+            } else if (dinner[0] <= times && times <= dinner[1]) {
+                if (select_id != 2) {
+                    select_id = 2;
+                    Notification();
+                }
+            } else if (select_id != -1){
+                select_id = -1;
+                NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                 notificationManager.cancelAll();
-                notificationManager.notify(0, notificationBuilder.build());
             }
 
         }
+    }
+
+    private void Notification() {
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.cancelAll();
+        Intent intent = new Intent(MyService.this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(MyService.this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            @SuppressLint("WrongConstant")
+            NotificationChannel notificationChannel = new NotificationChannel("my_notification", "n_channel", NotificationManager.IMPORTANCE_HIGH);
+            notificationChannel.setDescription("알림입니다");
+            notificationChannel.setName("알림 설정");
+            assert notificationManager != null;
+            notificationManager.createNotificationChannel(notificationChannel);
+        }
+        menu = getStringArrayPref(select_id);
+        String rest_name = pref.getString("alarm_food_name","");
+        String rest_type_name = pref.getString("alarm_food_type_name","");
+        if (menu.equals("")) {
+
+            menu = "오늘 밥 없습니다";
+        } else {
+            menu = menu.replace(" ", "\n");
+        }
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(MyService.this, CHANNEL_ID)
+                .setAutoCancel(false)
+                .setOngoing(true)
+                .setSmallIcon(drawables[select_id])
+                .setContentTitle("[ "+rest_type_name+" | "+rest_name+" ] - "+ title[select_id])
+                .setContentText(menu)
+                .setVibrate(new long[]{0, 3000})
+                .setContentIntent(pendingIntent)
+                .setDefaults(Notification.DEFAULT_ALL)
+                .setChannelId("my_notification")
+                .setColor(Color.parseColor("#ffffff"))
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(menu));
+        notificationManager.notify(0, notificationBuilder.build());
+
     }
 
     private String getStringArrayPref(int num) {

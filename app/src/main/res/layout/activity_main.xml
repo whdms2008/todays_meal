@@ -60,11 +60,12 @@
             tools:ignore="RtlCompat" />
 
         <ImageView
+            android:id="@+id/notification"
             android:layout_gravity="center_vertical"
             android:layout_weight="1"
             android:layout_width="0dp"
             android:layout_height="30dp"
-            android:src="@drawable/bell"/>
+            android:src="@drawable/notification"/>
     </LinearLayout>
 
     <LinearLayout
