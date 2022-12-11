@@ -33,6 +33,7 @@
                 android:textSize="15sp"
                 android:textColor="@color/black"
                 android:fontFamily="@font/scd6"
+                android:includeFontPadding="false"
                 />
             <TextView
                 android:id="@+id/diner_type"
@@ -43,19 +44,25 @@
                 android:textSize="15sp"
                 android:textColor="@color/black"
                 android:text="기숙사 식당"
+                android:includeFontPadding="false"
                 android:fontFamily="@font/scd6"
                 />
         </LinearLayout>
         <TextView
+            android:includeFontPadding="false"
             android:id="@+id/date"
             android:layout_weight="1.4"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:autoSizeTextType="uniform"
             android:text="12월 03일"
             android:textAlignment="center"
+            android:autoSizeMinTextSize="25sp"
+            android:autoSizeMaxTextSize="33sp"
             android:textSize="33sp"
             android:textColor="@color/black"
-            android:layout_gravity="center_vertical"
+            android:layout_gravity="center"
+            android:gravity="center"
             android:fontFamily="@font/scd6"
             tools:ignore="RtlCompat" />
 
@@ -65,7 +72,7 @@
             android:layout_weight="1"
             android:layout_width="0dp"
             android:layout_height="30dp"
-            android:src="@drawable/notification"/>
+            android:src="@drawable/false_notfication"/>
     </LinearLayout>
 
     <LinearLayout
@@ -75,12 +82,12 @@
         android:background="@color/white"
         android:orientation="vertical"
         android:paddingTop="40dp"
-        android:paddingBottom="200dp">
+        android:paddingBottom="130dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="0.15"
+            android:layout_weight="0.18"
             android:background="@drawable/border_radius_top"
             android:layout_marginLeft="14dp"
             android:layout_marginRight="14dp"
@@ -104,12 +111,15 @@
                 android:layout_weight="0.07"
                 android:fontFamily="@font/scd5"
                 android:text="중식"
+                android:autoSizeMinTextSize="15sp"
+                android:autoSizeMaxTextSize="25sp"
+                android:autoSizeTextType="uniform"
                 android:textAlignment="center"
                 android:gravity="center"
-                android:textColor="@color/black"
-                android:textSize="25sp" />
+                android:textColor="@color/black" />
 
             <TextView
+                android:includeFontPadding="false"
                 android:id="@+id/food_time"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"

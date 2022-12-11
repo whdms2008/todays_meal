@@ -6,8 +6,11 @@ import androidx.core.content.res.ResourcesCompat;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.Dialog;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -16,6 +19,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.icu.text.SimpleDateFormat;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -41,12 +45,19 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.example.term_project.databinding.ActivityMainBinding;
+
 public class MainActivity extends AppCompatActivity {
 
+    private ActivityMainBinding binding;
+    private Calendar calendar;
+    private AlarmManager alarmManager;
+    private PendingIntent pendingIntent;
     SharedPreferences pref;
     SharedPreferences.Editor editor;
 
@@ -119,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-
+//        createNotificationChannel();
         pref = getSharedPreferences("pref", Activity.MODE_PRIVATE);
         editor = pref.edit();
 
@@ -162,31 +173,22 @@ public class MainActivity extends AppCompatActivity {
 
         notify_icon.setOnClickListener(view -> {
             if (notify) {
-                Toast.makeText(getApplicationContext(),"알람 꺼짐",Toast.LENGTH_SHORT).show();
-                notify = false;
-                editor.putBoolean("notify", false);
-                notify_icon.setImageDrawable(getDrawable(R.drawable.notification));
-                NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                notificationManager.cancelAll();
+                cancelAlarm();
+                Toast.makeText(getApplicationContext(), "알람 꺼짐", Toast.LENGTH_SHORT).show();
+//                NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+//                notificationManager.cancelAll();
             } else {
-                Toast.makeText(getApplicationContext(),"알람 켜짐",Toast.LENGTH_SHORT).show();
-                notify = true;
-                editor.putBoolean("notify", true);
-                notify_icon.setImageDrawable(getDrawable(R.drawable.notification_true));
-                Intent serviceintent = new Intent(this, MyService.class);
-                startService(serviceintent);
+                setAlarm();
+                Toast.makeText(getApplicationContext(), "알람 켜짐", Toast.LENGTH_SHORT).show();
+//                Intent serviceintent = new Intent(this, MyService.class);
+//                startService(serviceintent);
             }
             editor.apply();
         });
         if (notify) {
-            Intent serviceintent = new Intent(this, MyService.class);
-            startService(serviceintent);
-            notify_icon.setImageDrawable(getDrawable(R.drawable.notification_true));
+            notify_icon.setImageDrawable(getDrawable(R.drawable.true_notification));
         } else {
-            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.cancelAll();
-            notify_icon.setImageDrawable(getDrawable(R.drawable.notification));
-
+            notify_icon.setImageDrawable(getDrawable(R.drawable.false_notfication));
         }
 
 
@@ -246,6 +248,94 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("UseCompatLoadingForDrawables")
+    private void cancelAlarm() {
+        notify = false;
+        editor.putBoolean("notify", false);
+        editor.apply();
+        notify_icon.setImageDrawable(getDrawable(R.drawable.false_notfication));
+
+        Intent intent = new Intent(this, AlarmReceiver.class);
+
+
+        if (alarmManager == null) {
+
+            alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
+        }
+        pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+
+        alarmManager.cancel(pendingIntent);
+        pendingIntent = PendingIntent.getBroadcast(this, 1, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+
+        alarmManager.cancel(pendingIntent);
+        pendingIntent = PendingIntent.getBroadcast(this, 2, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+
+        alarmManager.cancel(pendingIntent);
+
+    }
+
+    @SuppressLint({"UseCompatLoadingForDrawables", "UnspecifiedImmutableFlag"})
+    private void setAlarm() {
+
+//        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
+        Intent intent = new Intent(this, AlarmReceiver.class);
+
+//        pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+//
+//        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), 1000, pendingIntent);
+
+        notify = true;
+        editor.putBoolean("notify", true);
+        editor.apply();
+        notify_icon.setImageDrawable(getDrawable(R.drawable.true_notification));
+        calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 17);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
+//        Intent intent = new Intent(this, AlarmReceiver.class);
+        createNotificationChannel("0");
+        calendar.set(Calendar.HOUR_OF_DAY, 7);
+        calendar.set(Calendar.MINUTE, 30);
+//        calendar.set(Calendar.MINUTE,57);
+        pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+
+        calendar.set(Calendar.HOUR_OF_DAY, 11);
+        calendar.set(Calendar.MINUTE, 30);
+//        calendar.set(Calendar.MINUTE,58);
+        pendingIntent = PendingIntent.getBroadcast(this, 1, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+
+        calendar.set(Calendar.HOUR_OF_DAY, 17);
+        calendar.set(Calendar.MINUTE, 30);
+//        calendar.set(Calendar.MINUTE,59);
+        pendingIntent = PendingIntent.getBroadcast(this, 2, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+
+
+    }
+
+
+    private void createNotificationChannel(String id) {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "알림";
+            String description = "알림입니다!";
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel channel = new NotificationChannel(id, name, importance);
+            channel.setDescription(description);
+
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+
+        }
+
+
+    }
 
     Handler handler = new Handler(Looper.getMainLooper()) {
         @SuppressLint({"SetTextI18n", "UseCompatLoadingForDrawables"})
@@ -327,15 +417,15 @@ public class MainActivity extends AppCompatActivity {
                         room_type_3.performClick();
                     }
                 });
-                int first_chk = pref.getInt("select_campus",0);
-                int first_chk_rest = pref.getInt("select_restaurant",0);
-                int first_chk_dorm = pref.getInt("select_dorm_restaurant",0);
-                if ( first_chk == 0){
+                int first_chk = pref.getInt("select_campus", 0);
+                int first_chk_rest = pref.getInt("select_restaurant", 0);
+                int first_chk_dorm = pref.getInt("select_dorm_restaurant", 0);
+                if (first_chk == 0) {
                     campus_1.performClick();
-                }else if(first_chk == 1){
+                } else if (first_chk == 1) {
 
                     campus_2.performClick();
-                }else{
+                } else {
                     campus_3.performClick();
                 }
 
@@ -347,7 +437,6 @@ public class MainActivity extends AppCompatActivity {
                     Temporary_food_type_num.set(0);
                     int food_room_num = Integer.parseInt(String.valueOf(Temporary_num));
                     String[] food_room_len = food_room_name[food_room_num];
-                    System.out.println(food_room_num + ", " + food_room_len[0]);
                     if (Objects.equals(food_room_len[0], "예산")) {
                         Temporary_food_type_num.set(1);
                         select_room_view.check(R.id.select_room_2);
@@ -360,13 +449,13 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 });
-                if ( first_chk_rest == 0){
+                if (first_chk_rest == 0) {
                     room_type_1.performClick();
                     food_rooms_view.getChildAt(first_chk_dorm).performClick();
-                }else if(first_chk_rest == 1){
+                } else if (first_chk_rest == 1) {
 
                     room_type_2.performClick();
-                }else{
+                } else {
                     room_type_3.performClick();
                 }
                 room_type_2.setOnClickListener(view -> {
@@ -393,36 +482,32 @@ public class MainActivity extends AppCompatActivity {
                     editor.putInt("select_restaurant", select_room);
                     editor.apply();
                     diner_name.setText(dinner_type_name[select_room]);
-                    editor.putString("alarm_food_type_name",dinner_type_name[select_room]);
+                    editor.putString("alarm_food_type_name", dinner_type_name[select_room]);
                     if (select_room == 0) {
                         select_food_room = Integer.parseInt(String.valueOf(Temporary_food_room_num));
 
                         editor.putInt("select_dorm_restaurant", select_food_room);
                         editor.apply();
                         cam_name.setText(food_room_name[select_campus][select_food_room]);
-                        editor.putString("alarm_food_name",food_room_name[select_campus][select_food_room]);
+                        editor.putString("alarm_food_name", food_room_name[select_campus][select_food_room]);
                     } else {
                         cam_name.setText(student_name[select_campus]);
-                        editor.putString("alarm_food_name",student_name[select_campus]);
+                        editor.putString("alarm_food_name", student_name[select_campus]);
                     }
                     editor.apply();
                     int f_hour = Integer.parseInt(hour);
                     int f_minute = Integer.parseInt(minute);
-
-                    System.out.println(hour + "시 " + minute + " 분");
                     today_menus[0] = "";
                     today_menus[1] = "";
                     today_menus[2] = "";
-                    if (f_hour > 15) {
+                    if (f_hour >= 13 && f_minute >= 30) {
                         findViewById(R.id.moon).performClick();
                         dialog01.dismiss(); // 다이얼로그 닫기
-                    }
-                    if (f_hour >= 9) {
+                    } else if (f_hour >= 9) {
 
                         findViewById(R.id.sun).performClick();
                         dialog01.dismiss(); // 다이얼로그 닫기
-                    }
-                    if (f_hour > 1) {
+                    } else if (f_hour > 1) {
                         findViewById(R.id.sun_rise).performClick();
                         dialog01.dismiss(); // 다이얼로그 닫기
                     }
@@ -441,7 +526,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @SuppressLint("SetTextI18n")
-    private void load_food(int nums) {
+    private void load_food(int numbers) {
         try {
             Document document;
             Elements elements;
@@ -473,6 +558,7 @@ public class MainActivity extends AppCompatActivity {
                             today_menus[2] = elements.get(e_cnt).select("td").get(select).text();
                         }
                     }
+                    setStringArrayPref(today_menus);
                 } else {
                     for (Element a : elements.select("td[data-mqtitle='date']")) {
                         if (Objects.equals(a.text(), month + "월 " + day + "일")) {
@@ -481,7 +567,6 @@ public class MainActivity extends AppCompatActivity {
                         }
                         i += 1;
                     }
-                    food_type_icon.setImageDrawable(ResourcesCompat.getDrawable(getResources(), food_icon[nums], null));
                     Element e = elements.get(select);
                     today_menus[0] = e.select(food_time_type[0]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
                     today_menus[1] = e.select(food_time_type[1]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
@@ -490,10 +575,11 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             runOnUiThread(() -> {
+                food_type_icon.setImageDrawable(ResourcesCompat.getDrawable(getResources(), food_icon[numbers], null));
                 food_menu.removeAllViews();
-                food_time_view.setText(food_time[nums]);
-                if (today_menus[nums].length() != 0 && !Objects.equals(today_menus[nums], "등록된 식단내용이(가) 없습니다.")) {
-                    menus = today_menus[nums].split(" ");
+                food_time_view.setText(food_time[numbers]);
+                if (today_menus[numbers].length() != 0 && !Objects.equals(today_menus[numbers], "등록된 식단내용이(가) 없습니다.")) {
+                    menus = today_menus[numbers].split(" ");
                     for (String menu : menus) {
                         food_menu.addView(makeMenu(menu));
                     }
@@ -547,7 +633,6 @@ public class MainActivity extends AppCompatActivity {
         rdb.setHeight(150);
         rdb.setOnClickListener(view -> {
             Temporary_food_room_num.set(number);
-            System.out.println("기숙사 선택 : " + number);
         });
         return rdb;
     }
@@ -559,7 +644,6 @@ public class MainActivity extends AppCompatActivity {
         }
         if (values.length != 0) {
             editor.putString("food_menus", a.toString());
-            System.out.println("확인 : " + a);
         } else {
             editor.putString("food_menus", null);
         }
