@@ -1,6 +1,7 @@
 package com.example.term_project;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
 
@@ -45,6 +46,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
@@ -264,28 +266,18 @@ public class MainActivity extends AppCompatActivity {
 
         }
         pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-
         alarmManager.cancel(pendingIntent);
+
         pendingIntent = PendingIntent.getBroadcast(this, 1, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-
         alarmManager.cancel(pendingIntent);
-        pendingIntent = PendingIntent.getBroadcast(this, 2, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
 
+        pendingIntent = PendingIntent.getBroadcast(this, 2, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         alarmManager.cancel(pendingIntent);
 
     }
 
     @SuppressLint({"UseCompatLoadingForDrawables", "UnspecifiedImmutableFlag"})
     private void setAlarm() {
-
-//        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-
-        Intent intent = new Intent(this, AlarmReceiver.class);
-
-//        pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
-//
-//        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), 1000, pendingIntent);
-
         notify = true;
         editor.putBoolean("notify", true);
         editor.apply();
@@ -298,25 +290,26 @@ public class MainActivity extends AppCompatActivity {
 
 //        Intent intent = new Intent(this, AlarmReceiver.class);
         createNotificationChannel("0");
-        calendar.set(Calendar.HOUR_OF_DAY, 7);
-        calendar.set(Calendar.MINUTE, 30);
-//        calendar.set(Calendar.MINUTE,57);
-        pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
 
-        calendar.set(Calendar.HOUR_OF_DAY, 11);
-        calendar.set(Calendar.MINUTE, 30);
-//        calendar.set(Calendar.MINUTE,58);
-        pendingIntent = PendingIntent.getBroadcast(this, 1, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+        makeNotification(7,30,0, 0);
 
-        calendar.set(Calendar.HOUR_OF_DAY, 17);
-        calendar.set(Calendar.MINUTE, 30);
-//        calendar.set(Calendar.MINUTE,59);
-        pendingIntent = PendingIntent.getBroadcast(this, 2, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+        makeNotification(11,30,1, 1);
+//
+        makeNotification(17,30,2, 2);
 
+    }
 
+    private void makeNotification(int hour, int minute, int requestCode,int putData){
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        intent.putExtra("putData",putData);
+        intent.putExtra("requestCode", requestCode);
+        calendar.set(Calendar.HOUR_OF_DAY, hour);
+        calendar.set(Calendar.MINUTE, minute);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        pendingIntent = PendingIntent.getBroadcast(this, requestCode, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT  );
+        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),AlarmManager.INTERVAL_DAY,pendingIntent);
+//        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),pendingIntent);
     }
 
 
@@ -377,7 +370,7 @@ public class MainActivity extends AppCompatActivity {
                 Button room_type_1 = dialog01.findViewById(R.id.select_room_1);
                 Button room_type_2 = dialog01.findViewById(R.id.select_room_2);
                 Button room_type_3 = dialog01.findViewById(R.id.select_room_3);
-
+                // 날짜 오류
 
                 TextView room_show = dialog01.findViewById(R.id.food_rooms_show);
                 RadioGroup food_rooms_view = dialog01.findViewById(R.id.food_rooms);
@@ -536,26 +529,33 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     document = Jsoup.connect(campus[select_campus][select_food_room]).get();
                 }
-                elements = document.select("tbody").select("tr"); //필요한 녀석만 꼬집어서 지정
+                elements = document.select("tbody tr"); //필요한 녀석만 꼬집어서 지정
                 int i = 0;
 
                 if (select_room != 0) {
-                    for (Element a : document.select("thead").select("tr").select("span")) {
-                        if (Objects.equals(a.text(), year + "." + month + "." + day)) {
+//                    System.out.println(year +":"+ month+":"+day +","+select +", "+i);
+//                    System.out.println(document.select("th.on").text());
+//                    System.out.println(document.select("thead").select("tr").select("th").size());
+//                    System.out.println(document.select("thead").select("tr").select("th").indexOf());
+                    for (Element a : document.select("thead tr th")) {
+                        if (Objects.equals(a.text(), document.select("th.on").text())) {
+                            System.out.println(year +":"+ month+":"+day +","+select +", "+i);
                             select = i;
                             break;
                         }
                         i += 1;
                     }
-                    String title;
-                    for (int e_cnt = 0; e_cnt < elements.size(); e_cnt++) {
-                        title = elements.get(e_cnt).select("th").text();
-                        if (Objects.equals(title, "조식")) {
-                            today_menus[0] = elements.get(e_cnt).select("td").get(select).text();
-                        } else if (Objects.equals(title, "중식")) {
-                            today_menus[1] = elements.get(e_cnt).select("td").get(select).text();
-                        } else {
-                            today_menus[2] = elements.get(e_cnt).select("td").get(select).text();
+                    System.out.println(year +":"+ month+":"+day +","+select+", "+select_room );
+                    Elements elements2 = document.select("tbody");
+                    for (Element e: elements2.select("tr")) {
+                        System.out.println(e.child(0));
+                        if(Objects.equals(e.select("th").text(), "중식")){
+                            today_menus[1] = e.child(select).text();
+                            System.out.println(e.child(select));
+                        }
+                        if(Objects.equals(e.select("th").text(), "석식")){
+                            today_menus[2] = e.child(select).text();
+                            System.out.println(e.child(select));
                         }
                     }
                     setStringArrayPref(today_menus);

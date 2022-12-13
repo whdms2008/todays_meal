@@ -2,6 +2,9 @@ package com.example.term_project;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -10,7 +13,10 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.content.SharedPreferences;
 import android.icu.text.SimpleDateFormat;
+import android.os.Build;
 
+import androidx.annotation.RequiresApi;
+import androidx.core.app.AlarmManagerCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
@@ -36,6 +42,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     int[] breakfast = {450, 540};
     int[] lunch = {690, 810};
     int[] dinner = {1050, 1140};
+    int[][] times = {{7, 30, 9, 0}, {11, 30, 13, 30}, {17, 30, 19, 0}};
     int[] drawables = {R.drawable.sun_morning, R.drawable.breakfast, R.drawable.dinner_icon};
     int select_id = 0;
     String[][] restaurants = {{}, {
@@ -55,6 +62,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     String[] title = {"조식 메뉴", "중식 메뉴", "석식 메뉴"};
 
     int select = 0;
+    int requestCode = 0;
     long now = System.currentTimeMillis();
 
     Date date = new Date(now);
@@ -69,31 +77,29 @@ public class AlarmReceiver extends BroadcastReceiver {
     String minute = getDate.split(":")[4];
     Document document;
     Elements elements;
-
+    AlarmManager alarmManager;
+    Calendar calendar;
     String[] food_time_type = {"td[data-mqtitle='breakfast']", "td[data-mqtitle='lunch']", "td[data-mqtitle='dinner']"};
+
+    @SuppressLint("UnspecifiedImmutableFlag")
     @Override
     public void onReceive(Context context, Intent intent) {
+
         pref = context.getSharedPreferences("pref", Activity.MODE_PRIVATE);
         if (!pref.getBoolean("notify", false)) {
             return;
         }
-        Calendar cal1 = Calendar.getInstance();
-        int hour = cal1.get(Calendar.HOUR_OF_DAY);
-        int minute = cal1.get(Calendar.MINUTE);
-        int times = (hour * 60) + minute;
-        if (breakfast[0] <= times && times <= breakfast[1]) {
-            select_id = 0;
-        } else if (lunch[0] <= times && times <= lunch[1]) {
-            select_id = 1;
-        } else if (dinner[0] <= times && times <= dinner[1]) {
-            select_id = 2;
-        }else{
-            select_id = 0;
-        }
-        Intent i = new Intent(context, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, i, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-
+        calendar = Calendar.getInstance();
+        System.out.println("putData : " + intent.getIntExtra("putData", 0));
+        System.out.println("cancel : " + intent.getIntExtra("cancel", 0));
+        System.out.println("code : " + intent.getIntExtra("code", 0));
+        select_id = intent.getIntExtra("putData", 0);
+        System.out.println("알람 등장");
+        alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_CANCEL_CURRENT);
+//        makeNotification(context, pendingIntent,calendar.get(Calendar.HOUR_OF_DAY),calendar.get(Calendar.MINUTE)+3,requestCode,select_id);
         Notification(pendingIntent, context);
+
     }
 
     private void Notification(PendingIntent pendingIntent, Context context) {
@@ -114,13 +120,14 @@ public class AlarmReceiver extends BroadcastReceiver {
                     e.printStackTrace();
                 }
             }
-            elements = document.select("tbody").select("tr"); //필요한 녀석만 꼬집어서 지정
-
             int i = 0;
 
+            elements = document.select("tbody").select("tr"); //필요한 녀석만 꼬집어서 지정
             if (select_room != 0) {
-                for (Element a : document.select("thead").select("tr").select("span")) {
-                    if (Objects.equals(a.text(), year + "." + month + "." + day)) {
+                for (Element a : document.select("thead tr th")) {
+                    System.out.println(a);
+                    if (Objects.equals(a.text(), document.select("th.on").text())) {
+                        System.out.println(year + ":" + month + ":" + day + "," + select + ", " + i);
                         select = i;
                         break;
                     }
@@ -139,12 +146,17 @@ public class AlarmReceiver extends BroadcastReceiver {
                     if (Objects.equals(title, "중식") && select_id == 1) {
                         menu = elements.get(e_cnt).select("td").get(select).text();
                     }
-                    if (Objects.equals(title, "석식") && select_id == 2){
+                    if (Objects.equals(title, "석식") && select_id == 2) {
                         menu = elements.get(e_cnt).select("td").get(select).text();
                     }
-                    System.out.println("e_cnt : "+e_cnt +", "+ title + ", " + menu);
-                    }
+                    System.out.println("e_cnt : " + e_cnt + ", " + title + ", " + menu);
+                }
+//                setStringArrayPref(today_menus);
+
+
             } else {
+
+                System.out.println("기숙사!!!");
                 for (Element a : elements.select("td[data-mqtitle='date']")) {
                     if (Objects.equals(a.text(), month + "월 " + day + "일")) {
                         select = i;
@@ -153,41 +165,51 @@ public class AlarmReceiver extends BroadcastReceiver {
                     i += 1;
                 }
                 Element e = elements.get(select);
-                if (select_id == 0){
-                    menu = e.select(food_time_type[0]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
-                }else if(select_id == 1){
-
-                    menu= e.select(food_time_type[1]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
-                }else{
-                    menu = e.select(food_time_type[2]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
-                }
+                menu = e.select(food_time_type[select_id]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
             }
-        String rest_name = pref.getString("alarm_food_name", "");
-        String rest_type_name = pref.getString("alarm_food_type_name", "");
-        if (menu.equals("")) {
-            menu = "오늘 밥 없습니다";
-        } else {
-            menu = menu.replace(" ", "\n");
-        }
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setAutoCancel(false)
-                .setOngoing(true)
-                .setSmallIcon(drawables[select_id])
-                .setContentTitle("[ " + rest_type_name + " | " + rest_name + " ] - " + title[select_id])
-                .setContentText(menu)
-                .setVibrate(new long[]{0, 3000})
-                .setContentIntent(pendingIntent)
-                .setDefaults(android.app.Notification.DEFAULT_ALL)
-                .setChannelId(CHANNEL_ID)
-                .setColor(Color.parseColor("#ffffff"))
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(menu));
+            String rest_name = pref.getString("alarm_food_name", "");
+            String rest_type_name = pref.getString("alarm_food_type_name", "");
+            if (menu.equals("")) {
+                menu = "오늘 밥 없습니다";
+            } else {
+                menu = menu.replace(" ", "\n");
+            }
+            NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context, CHANNEL_ID)
+                    .setAutoCancel(false)
+                    .setOngoing(true)
+                    .setSmallIcon(drawables[select_id])
+                    .setContentTitle("[ " + rest_type_name + " | " + rest_name + " ] - " + title[select_id])
+                    .setContentText(menu)
+                    .setVibrate(new long[]{0, 3000})
+                    .setContentIntent(pendingIntent)
+                    .setDefaults(android.app.Notification.DEFAULT_ALL)
+                    .setChannelId(CHANNEL_ID)
+                    .setColor(Color.parseColor("#ffffff"))
+                    .setStyle(new NotificationCompat.BigTextStyle().bigText(menu));
 
-        NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
+            NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
 
-        notificationManagerCompat.notify(0, notificationBuilder.build());
+            notificationManagerCompat.notify(0, notificationBuilder.build());
         }).start();
     }
 
+
+    private void makeNotification(Context context, PendingIntent pendingIntent, int hour, int minute, int requestCode, int putData) {
+        Intent intent = new Intent(context, AlarmReceiver.class);
+        intent.putExtra("putData", putData);
+        intent.putExtra("requestCode", requestCode);
+
+        calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, hour);
+        calendar.set(Calendar.MINUTE, minute);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        System.out.println(calendar.get(Calendar.DATE) + ":" + calendar.get(Calendar.HOUR_OF_DAY) + ":" + calendar.get(Calendar.MINUTE));
+
+//        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+//        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), 1000 * 10, pendingIntent);
+    }
 }
 
 
