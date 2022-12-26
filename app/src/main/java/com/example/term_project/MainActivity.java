@@ -52,11 +52,8 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.example.term_project.databinding.ActivityMainBinding;
-
 public class MainActivity extends AppCompatActivity {
 
-    private ActivityMainBinding binding;
     private Calendar calendar;
     private AlarmManager alarmManager;
     private PendingIntent pendingIntent;
@@ -132,7 +129,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-//        createNotificationChannel();
         pref = getSharedPreferences("pref", Activity.MODE_PRIVATE);
         editor = pref.edit();
 
@@ -142,8 +138,8 @@ public class MainActivity extends AppCompatActivity {
         select_food_room = pref.getInt("select_dorm_restaurant", 0);
         food_menus = pref.getString("food_menus", "");
         notify = pref.getBoolean("notify", false);
-        alarm_food_name = pref.getString("alarm_food_name", "");
-        alarm_food_type_name = pref.getString("alarm_food_type_name", "");
+        alarm_food_name = pref.getString("alarm_food_name", "천안");
+        alarm_food_type_name = pref.getString("alarm_food_type_name", "기숙사 식당");
 
         cam_name = findViewById(R.id.cam_name);
         diner_name = findViewById(R.id.diner_type);
@@ -293,7 +289,7 @@ public class MainActivity extends AppCompatActivity {
 
         makeNotification(7,30,0, 0);
 
-        makeNotification(11,30,1, 1);
+        makeNotification(11,40,1, 1);
 //
         makeNotification(17,30,2, 2);
 
@@ -326,8 +322,6 @@ public class MainActivity extends AppCompatActivity {
             notificationManager.createNotificationChannel(channel);
 
         }
-
-
     }
 
     Handler handler = new Handler(Looper.getMainLooper()) {
@@ -493,14 +487,18 @@ public class MainActivity extends AppCompatActivity {
                     today_menus[0] = "";
                     today_menus[1] = "";
                     today_menus[2] = "";
-                    if (f_hour >= 13 && f_minute >= 30) {
+
+                    int time_all = (f_hour * 60) + f_minute;
+                    int morning = 9*60;
+                    int lunch = 13*60 + 30;
+                    int dinner = 19*60;
+                    if (dinner - time_all > 0 ) {
                         findViewById(R.id.moon).performClick();
                         dialog01.dismiss(); // 다이얼로그 닫기
-                    } else if (f_hour >= 9) {
-
+                    } else if (lunch - time_all > 0) {
                         findViewById(R.id.sun).performClick();
                         dialog01.dismiss(); // 다이얼로그 닫기
-                    } else if (f_hour > 1) {
+                    } else if (morning - time_all > 0) {
                         findViewById(R.id.sun_rise).performClick();
                         dialog01.dismiss(); // 다이얼로그 닫기
                     }
@@ -533,10 +531,6 @@ public class MainActivity extends AppCompatActivity {
                 int i = 0;
 
                 if (select_room != 0) {
-//                    System.out.println(year +":"+ month+":"+day +","+select +", "+i);
-//                    System.out.println(document.select("th.on").text());
-//                    System.out.println(document.select("thead").select("tr").select("th").size());
-//                    System.out.println(document.select("thead").select("tr").select("th").indexOf());
                     for (Element a : document.select("thead tr th")) {
                         if (Objects.equals(a.text(), document.select("th.on").text())) {
                             System.out.println(year +":"+ month+":"+day +","+select +", "+i);

@@ -167,8 +167,8 @@ public class AlarmReceiver extends BroadcastReceiver {
                 Element e = elements.get(select);
                 menu = e.select(food_time_type[select_id]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
             }
-            String rest_name = pref.getString("alarm_food_name", "");
-            String rest_type_name = pref.getString("alarm_food_type_name", "");
+            String rest_name = pref.getString("alarm_food_name", "천안");
+            String rest_type_name = pref.getString("alarm_food_type_name", "기숙사 식당");
             if (menu.equals("")) {
                 menu = "오늘 밥 없습니다";
             } else {
@@ -191,24 +191,6 @@ public class AlarmReceiver extends BroadcastReceiver {
 
             notificationManagerCompat.notify(0, notificationBuilder.build());
         }).start();
-    }
-
-
-    private void makeNotification(Context context, PendingIntent pendingIntent, int hour, int minute, int requestCode, int putData) {
-        Intent intent = new Intent(context, AlarmReceiver.class);
-        intent.putExtra("putData", putData);
-        intent.putExtra("requestCode", requestCode);
-
-        calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, hour);
-        calendar.set(Calendar.MINUTE, minute);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        System.out.println(calendar.get(Calendar.DATE) + ":" + calendar.get(Calendar.HOUR_OF_DAY) + ":" + calendar.get(Calendar.MINUTE));
-
-//        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
-//        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), 1000 * 10, pendingIntent);
     }
 }
 
