@@ -176,7 +176,7 @@ public class AlarmReceiver extends BroadcastReceiver {
             }
             NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context, CHANNEL_ID)
                     .setAutoCancel(false)
-                    .setOngoing(true)
+                    .setOngoing(false)
                     .setSmallIcon(drawables[select_id])
                     .setContentTitle("[ " + rest_type_name + " | " + rest_name + " ] - " + title[select_id])
                     .setContentText(menu)
