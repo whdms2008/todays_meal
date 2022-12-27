@@ -14,6 +14,7 @@ import android.graphics.Color;
 import android.content.SharedPreferences;
 import android.icu.text.SimpleDateFormat;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 import androidx.core.app.AlarmManagerCompat;
@@ -85,6 +86,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
+        Log.i("data","알람 울림!");
         pref = context.getSharedPreferences("pref", Activity.MODE_PRIVATE);
         if (!pref.getBoolean("notify", false)) {
             return;
@@ -94,9 +96,10 @@ public class AlarmReceiver extends BroadcastReceiver {
         System.out.println("cancel : " + intent.getIntExtra("cancel", 0));
         System.out.println("code : " + intent.getIntExtra("code", 0));
         select_id = intent.getIntExtra("putData", 0);
+        intent.setAction(Intent.ACTION_MAIN);
         System.out.println("알람 등장");
         alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getService(context, requestCode, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
 //        makeNotification(context, pendingIntent,calendar.get(Calendar.HOUR_OF_DAY),calendar.get(Calendar.MINUTE)+3,requestCode,select_id);
         Notification(pendingIntent, context);
 
