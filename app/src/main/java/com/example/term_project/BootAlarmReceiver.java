@@ -12,7 +12,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.util.Calendar;
 
@@ -41,13 +40,12 @@ public class BootAlarmReceiver extends BroadcastReceiver {
         Intent alarmIntent = new Intent(context, AlarmReceiver.class);
         alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
-//        Intent intent = new Intent(this, AlarmReceiver.class);
         createNotificationChannel(context,"0");
 
         makeNotification(context, alarmIntent, 7, 30, 0, 0);
 
         makeNotification(context, alarmIntent, 11, 40, 1, 1);
-//
+
         makeNotification(context, alarmIntent, 17, 30, 2, 2);
 
     }

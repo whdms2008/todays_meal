@@ -1,7 +1,6 @@
 package com.example.term_project;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
 
@@ -25,6 +24,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -73,22 +74,24 @@ public class MainActivity extends AppCompatActivity {
     String[] today_menus = {"", "", ""}; // 조식메뉴, 중식, 석식
     String[] student_name = {"천안", "예산", "신관"};
 
-    String[][] restaurants = {{}, {
-            "https://www.kongju.ac.kr/kongju/13157/subview.do", // 천안 학생식당
-            "https://www.kongju.ac.kr/kongju/13159/subview.do", // 예산 학생식당
-            "https://www.kongju.ac.kr/kongju/13155/subview.do"},
+    String[][] restaurants = {{},
+            {
+                    "https://www.kongju.ac.kr/kongju/13157/subview.do", // 천안 학생식당
+                    "https://www.kongju.ac.kr/kongju/13159/subview.do", // 예산 학생식당
+                    "https://www.kongju.ac.kr/kongju/13155/subview.do"  // 신관 학생식당
+            },
             {
                     "https://www.kongju.ac.kr/kongju/13158/subview.do", // 천안 직원식당
                     "https://www.kongju.ac.kr/kongju/13160/subview.do", // 예산 직원식당
-                    "https://www.kongju.ac.kr/kongju/13156/subview.do"}
+                    "https://www.kongju.ac.kr/kongju/13156/subview.do"  // 신관 직원식당
+            }
     };
 
     // 천안, 예산, 은행사/비전, 드림
     String[] food_time_type = {"td[data-mqtitle='breakfast']", "td[data-mqtitle='lunch']", "td[data-mqtitle='dinner']"};
     String[] dinner_type_name = {"기숙사 식당", "학생식당", "교직원식당"};
-    String[] food_time = {"07:30 ~ 09:00", "11:30 ~ 13:30", "17:30 ~ 19:00"};
+    String[] food_time = {"07:30 ~ 09:00", "11:40 ~ 13:30", "17:30 ~ 19:00"};
     String[][] food_room_name = {{"천안"}, {"예산"}, {"은행사/비전", "드림"}};
-    String[] menus;
     String[] food_time_name = {"조식", "중식", "석식"};
     final Bundle bundle = new Bundle();
     long now = System.currentTimeMillis();
@@ -98,7 +101,6 @@ public class MainActivity extends AppCompatActivity {
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy:MM:dd:HH:mm");
 
     String getDate = sdf.format(date);
-    String year = getDate.split(":")[0];
     String month = getDate.split(":")[1];
     String day = getDate.split(":")[2];
     String hour = getDate.split(":")[3];
@@ -110,7 +112,6 @@ public class MainActivity extends AppCompatActivity {
     int select_campus = 0; // 캠퍼스 종류
     int select_room = 0; // 식당 종류
     int select_food_room = 0; // 기숙사의 경우 식당 종류
-
     String food_menus = ""; // 기숙사 조식
     int[] food_icon = {R.drawable.sun_morning, R.drawable.breakfast, R.drawable.dinner_icon};
 
@@ -173,13 +174,9 @@ public class MainActivity extends AppCompatActivity {
             if (notify) {
                 cancelAlarm();
                 Toast.makeText(getApplicationContext(), "알람 꺼짐", Toast.LENGTH_SHORT).show();
-//                NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-//                notificationManager.cancelAll();
             } else {
                 setAlarm();
                 Toast.makeText(getApplicationContext(), "알람 켜짐", Toast.LENGTH_SHORT).show();
-//                Intent serviceintent = new Intent(this, MyService.class);
-//                startService(serviceintent);
             }
             editor.apply();
         });
@@ -284,28 +281,27 @@ public class MainActivity extends AppCompatActivity {
         calendar.set(Calendar.MILLISECOND, 0);
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
-//        Intent intent = new Intent(this, AlarmReceiver.class);
         createNotificationChannel("0");
 
-        makeNotification(7,30,0, 0);
+        makeNotification(7, 30, 0, 0);
 
-        makeNotification(11,40,1, 1);
-//
-        makeNotification(17,30,2, 2);
+        makeNotification(11, 40, 1, 1);
+
+        makeNotification(17, 30, 2, 2);
 
     }
 
-    private void makeNotification(int hour, int minute, int requestCode,int putData){
+    @SuppressLint("UnspecifiedImmutableFlag")
+    private void makeNotification(int hour, int minute, int requestCode, int putData) {
         Intent intent = new Intent(this, AlarmReceiver.class);
-        intent.putExtra("putData",putData);
+        intent.putExtra("putData", putData);
         intent.putExtra("requestCode", requestCode);
         calendar.set(Calendar.HOUR_OF_DAY, hour);
         calendar.set(Calendar.MINUTE, minute);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
-        pendingIntent = PendingIntent.getBroadcast(this, requestCode, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT  );
-        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),AlarmManager.INTERVAL_DAY,pendingIntent);
-//        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),pendingIntent);
+        pendingIntent = PendingIntent.getBroadcast(this, requestCode, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
     }
 
 
@@ -353,19 +349,25 @@ public class MainActivity extends AppCompatActivity {
             if (num == 0) { // 캠퍼스
                 dialog01.show(); // 다이얼로그 띄우기
                 dialog01.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                RadioGroup radioGroup = dialog01.findViewById(R.id.radio_group);
                 Button campus_1 = dialog01.findViewById(R.id.radio_1);
                 Button campus_2 = dialog01.findViewById(R.id.radio_2);
                 Button campus_3 = dialog01.findViewById(R.id.radio_3);
+
+                Button[] campus_list = {campus_1, campus_2, campus_3};
+
                 today_date.setText(month + "월 " + day + "일");
                 select_room = Integer.parseInt(String.valueOf(Temporary_food_type_num));
                 editor.putInt("select_restaurant", select_room);
 
 
+                // 식당 관련
                 Button room_type_1 = dialog01.findViewById(R.id.select_room_1);
                 Button room_type_2 = dialog01.findViewById(R.id.select_room_2);
                 Button room_type_3 = dialog01.findViewById(R.id.select_room_3);
-                // 날짜 오류
 
+
+                Button[] room_types = {room_type_1, room_type_2, room_type_3};
                 TextView room_show = dialog01.findViewById(R.id.food_rooms_show);
                 RadioGroup food_rooms_view = dialog01.findViewById(R.id.food_rooms);
                 RadioGroup select_room_view = dialog01.findViewById(R.id.select_rooom_rdg);
@@ -374,50 +376,46 @@ public class MainActivity extends AppCompatActivity {
 
                 // ==========캠퍼스 고르기 Temporary_num = 캠퍼스 종류 [ 0, 1, 2 ]===========
 
-                campus_1.setOnClickListener(view -> {
-                    Temporary_num.set(0);
-                    if (Integer.parseInt(String.valueOf(Temporary_food_type_num)) == 0) {
-                        room_type_1.performClick();
-                    } else if (Integer.parseInt(String.valueOf(Temporary_food_type_num)) == 1) {
-                        room_type_2.performClick();
-                    } else {
-                        room_type_3.performClick();
+                radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+
+                    RadioButton rdoButton = dialog01.findViewById(group.getCheckedRadioButtonId());
+                    Log.i("data", String.valueOf(rdoButton.getText()));
+                    switch (String.valueOf(rdoButton.getText())) {
+                        case "예산":
+                            Temporary_num.set(1);
+                            break;
+                        case "신관":
+                            Temporary_num.set(2);
+                            break;
+                        default:
+                            Temporary_num.set(0);
+                            break;
                     }
+                    room_types[Integer.parseInt(String.valueOf(Temporary_food_type_num))].performClick();
                 });
-                campus_2.setOnClickListener(view -> {
-                    Temporary_num.set(1);
-                    if (Integer.parseInt(String.valueOf(Temporary_food_type_num)) == 0) {
-                        room_type_1.performClick();
-                    } else if (Integer.parseInt(String.valueOf(Temporary_food_type_num)) == 1) {
-                        room_type_2.performClick();
-                    } else {
-                        room_type_3.performClick();
-                    }
-                });
-                campus_3.setOnClickListener(view -> {
-                    Temporary_num.set(2);
-                    if (Integer.parseInt(String.valueOf(Temporary_food_type_num)) == 0) {
-                        room_type_1.performClick();
-                    } else if (Integer.parseInt(String.valueOf(Temporary_food_type_num)) == 1) {
-                        room_type_2.performClick();
-                    } else {
-                        room_type_3.performClick();
-                    }
-                });
+
                 int first_chk = pref.getInt("select_campus", 0);
                 int first_chk_rest = pref.getInt("select_restaurant", 0);
                 int first_chk_dorm = pref.getInt("select_dorm_restaurant", 0);
-                if (first_chk == 0) {
-                    campus_1.performClick();
-                } else if (first_chk == 1) {
-
-                    campus_2.performClick();
-                } else {
-                    campus_3.performClick();
-                }
+                campus_list[first_chk].performClick();
 
                 // ================= 식당 종류 선택 ====================
                 // 임시 변수 : Temporary_foo_type_num
+
+                select_room_view.setOnCheckedChangeListener((group, checkedId) -> {
+                    RadioButton rdoButton = dialog01.findViewById(select_room_view.getCheckedRadioButtonId());
+                    switch (String.valueOf(rdoButton.getText())) {
+                        case "학생 식당":
+                            Temporary_food_type_num.set(1);
+                            break;
+                        case "교직원 식당":
+                            Temporary_food_type_num.set(2);
+                            break;
+                    }
+                    room_show.setVisibility(View.GONE);
+                    food_rooms_view.removeAllViews();
+                });
+
                 room_type_1.setOnClickListener(view -> {
                     food_rooms_view.removeAllViews();
                     Temporary_food_room_num.set(0);
@@ -436,30 +434,26 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 });
+
+
                 if (first_chk_rest == 0) {
                     room_type_1.performClick();
-                    food_rooms_view.getChildAt(first_chk_dorm).performClick();
+                    try {
+
+                        food_rooms_view.getChildAt(first_chk_dorm).performClick();
+                    } catch (Exception e) {
+                        System.out.println(e);
+                    }
                 } else if (first_chk_rest == 1) {
 
                     room_type_2.performClick();
                 } else {
                     room_type_3.performClick();
                 }
-                room_type_2.setOnClickListener(view -> {
-                    Temporary_food_type_num.set(1);
-                    room_show.setVisibility(View.GONE);
-                    food_rooms_view.removeAllViews();
-                });
-                room_type_3.setOnClickListener(view -> {
-                    Temporary_food_type_num.set(2);
-                    room_show.setVisibility(View.GONE);
-                    food_rooms_view.removeAllViews();
-                });
+
                 // ================= 기숙사 식당 선택 ==================
 
-                dialog01.findViewById(R.id.noBtn).setOnClickListener(view -> {
-                    dialog01.dismiss();
-                });
+                dialog01.findViewById(R.id.noBtn).setOnClickListener(view -> dialog01.dismiss());
                 dialog01.findViewById(R.id.yesBtn).setOnClickListener(view -> {
                     select_campus = Integer.parseInt(String.valueOf(Temporary_num));
                     editor.putInt("select_campus", select_campus);
@@ -489,18 +483,15 @@ public class MainActivity extends AppCompatActivity {
                     today_menus[2] = "";
 
                     int time_all = (f_hour * 60) + f_minute;
-                    int morning = 9*60;
-                    int lunch = 13*60 + 30;
-                    int dinner = 19*60;
-                    if (dinner - time_all > 0 ) {
+                    int morning = 9 * 60;
+                    int lunch = 13 * 60 + 30;
+                    int dinner = 19 * 60;
+                    if (dinner - time_all > 0) {
                         findViewById(R.id.moon).performClick();
-                        dialog01.dismiss(); // 다이얼로그 닫기
                     } else if (lunch - time_all > 0) {
                         findViewById(R.id.sun).performClick();
-                        dialog01.dismiss(); // 다이얼로그 닫기
                     } else if (morning - time_all > 0) {
                         findViewById(R.id.sun_rise).performClick();
-                        dialog01.dismiss(); // 다이얼로그 닫기
                     }
                     dialog01.dismiss(); // 다이얼로그 닫기
                 });
@@ -516,6 +507,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+
     @SuppressLint("SetTextI18n")
     private void load_food(int numbers) {
         try {
@@ -528,43 +520,28 @@ public class MainActivity extends AppCompatActivity {
                     document = Jsoup.connect(campus[select_campus][select_food_room]).get();
                 }
                 elements = document.select("tbody tr"); //필요한 녀석만 꼬집어서 지정
-                int i = 0;
-
                 if (select_room != 0) {
-                    for (Element a : document.select("thead tr th")) {
-                        if (Objects.equals(a.text(), document.select("th.on").text())) {
-                            System.out.println(year +":"+ month+":"+day +","+select +", "+i);
-                            select = i;
-                            break;
-                        }
-                        i += 1;
-                    }
-                    System.out.println(year +":"+ month+":"+day +","+select+", "+select_room );
+                    select = document.select("thead tr th").indexOf(document.select("th.on").first());
                     Elements elements2 = document.select("tbody");
-                    for (Element e: elements2.select("tr")) {
-                        System.out.println(e.child(0));
-                        if(Objects.equals(e.select("th").text(), "중식")){
-                            today_menus[1] = e.child(select).text();
-                            System.out.println(e.child(select));
-                        }
-                        if(Objects.equals(e.select("th").text(), "석식")){
-                            today_menus[2] = e.child(select).text();
-                            System.out.println(e.child(select));
+                    for (Element e : elements2.select("tr")) {
+                        switch (e.select("th").text()) {
+                            case "중식":
+                                today_menus[1] = e.child(select).text();
+                                break;
+                            case "석식":
+                                today_menus[2] = e.child(select).text();
+                                break;
                         }
                     }
                     setStringArrayPref(today_menus);
                 } else {
-                    for (Element a : elements.select("td[data-mqtitle='date']")) {
-                        if (Objects.equals(a.text(), month + "월 " + day + "일")) {
-                            select = i;
-                            break;
-                        }
-                        i += 1;
-                    }
+                    List<String> list = Arrays.asList(elements.select("td[data-mqtitle='date']").text().replace(" ", "").split("일"));
+                    select = list.indexOf(month + "월" + day);
+
                     Element e = elements.get(select);
-                    today_menus[0] = e.select(food_time_type[0]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
-                    today_menus[1] = e.select(food_time_type[1]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
-                    today_menus[2] = e.select(food_time_type[2]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
+                    for (int cnt = 0; cnt < today_menus.length; cnt++) {
+                        today_menus[cnt] = e.select(food_time_type[cnt]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
+                    }
                     setStringArrayPref(today_menus);
                 }
             }
@@ -572,11 +549,9 @@ public class MainActivity extends AppCompatActivity {
                 food_type_icon.setImageDrawable(ResourcesCompat.getDrawable(getResources(), food_icon[numbers], null));
                 food_menu.removeAllViews();
                 food_time_view.setText(food_time[numbers]);
-                if (today_menus[numbers].length() != 0 && !Objects.equals(today_menus[numbers], "등록된 식단내용이(가) 없습니다.")) {
-                    menus = today_menus[numbers].split(" ");
-                    for (String menu : menus) {
-                        food_menu.addView(makeMenu(menu));
-                    }
+                if (!today_menus[numbers].isEmpty() && !Objects.equals(today_menus[numbers], "등록된 식단내용이(가) 없습니다.")) {
+                    List<String> menus = Arrays.asList(today_menus[numbers].split(" "));
+                    menus.forEach(menu -> food_menu.addView(makeMenu(menu)));
                 } else {
                     food_menu.addView(makeMenu("밥 없어요~!!"));
                 }
@@ -585,6 +560,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+
 
     @NonNull
     private TextView makeMenu(String content) {

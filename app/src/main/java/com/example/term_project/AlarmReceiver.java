@@ -3,9 +3,6 @@ package com.example.term_project;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlarmManager;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -13,37 +10,28 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.content.SharedPreferences;
 import android.icu.text.SimpleDateFormat;
-import android.os.Build;
 import android.util.Log;
 
-import androidx.annotation.RequiresApi;
-import androidx.core.app.AlarmManagerCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class AlarmReceiver extends BroadcastReceiver {
     SharedPreferences pref;
     SharedPreferences.Editor editor;
-    NotificationManager notificationManager;
     String CHANNEL_ID = "0";
     String menu = "";
-    int[] breakfast = {450, 540};
-    int[] lunch = {690, 810};
-    int[] dinner = {1050, 1140};
-    int[][] times = {{7, 30, 9, 0}, {11, 30, 13, 30}, {17, 30, 19, 0}};
     int[] drawables = {R.drawable.sun_morning, R.drawable.breakfast, R.drawable.dinner_icon};
     int select_id = 0;
     String[][] restaurants = {{}, {
@@ -71,11 +59,8 @@ public class AlarmReceiver extends BroadcastReceiver {
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy:MM:dd:HH:mm");
 
     String getDate = sdf.format(date);
-    String year = getDate.split(":")[0];
     String month = getDate.split(":")[1];
     String day = getDate.split(":")[2];
-    String hour = getDate.split(":")[3];
-    String minute = getDate.split(":")[4];
     Document document;
     Elements elements;
     AlarmManager alarmManager;
@@ -86,8 +71,8 @@ public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
-        Log.i("data","알람 울림!");
         pref = context.getSharedPreferences("pref", Activity.MODE_PRIVATE);
+        editor = pref.edit();
         if (!pref.getBoolean("notify", false)) {
             return;
         }
@@ -96,11 +81,13 @@ public class AlarmReceiver extends BroadcastReceiver {
         System.out.println("cancel : " + intent.getIntExtra("cancel", 0));
         System.out.println("code : " + intent.getIntExtra("code", 0));
         select_id = intent.getIntExtra("putData", 0);
+        intent = new Intent(context, MainActivity.class);
         intent.setAction(Intent.ACTION_MAIN);
-        System.out.println("알람 등장");
+        editor.putInt("select_time", select_id);
+        editor.apply();
+
         alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        PendingIntent pendingIntent = PendingIntent.getService(context, requestCode, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-//        makeNotification(context, pendingIntent,calendar.get(Calendar.HOUR_OF_DAY),calendar.get(Calendar.MINUTE)+3,requestCode,select_id);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         Notification(pendingIntent, context);
 
     }
@@ -127,46 +114,22 @@ public class AlarmReceiver extends BroadcastReceiver {
 
             elements = document.select("tbody").select("tr"); //필요한 녀석만 꼬집어서 지정
             if (select_room != 0) {
-                for (Element a : document.select("thead tr th")) {
-                    System.out.println(a);
-                    if (Objects.equals(a.text(), document.select("th.on").text())) {
-                        System.out.println(year + ":" + month + ":" + day + "," + select + ", " + i);
-                        select = i;
+                select = document.select("thead tr th").indexOf(document.select("th.on").first());
+
+                menu = "";
+                String[] meal_times = {"조식", "중식", "석식"};
+                for (int e_cnt = 0; e_cnt < elements.size(); e_cnt++) {
+                    String title = elements.get(e_cnt).select("th").text();
+                    if (Objects.equals(title, meal_times[select_id])) {
+                        menu = elements.get(e_cnt).select("td").get(select).text();
                         break;
                     }
-                    i += 1;
                 }
-
-//                menu = elements.get(select_id).select("td").get(select).text();
-                menu = "";
-                for (int e_cnt = 0; e_cnt < elements.size(); e_cnt++) {
-
-                    String title;
-                    title = elements.get(e_cnt).select("th").text();
-                    if (Objects.equals(title, "조식") && select_id == 0) {
-                        menu = elements.get(e_cnt).select("td").get(select).text();
-                    }
-                    if (Objects.equals(title, "중식") && select_id == 1) {
-                        menu = elements.get(e_cnt).select("td").get(select).text();
-                    }
-                    if (Objects.equals(title, "석식") && select_id == 2) {
-                        menu = elements.get(e_cnt).select("td").get(select).text();
-                    }
-                    System.out.println("e_cnt : " + e_cnt + ", " + title + ", " + menu);
-                }
-//                setStringArrayPref(today_menus);
-
-
             } else {
 
                 System.out.println("기숙사!!!");
-                for (Element a : elements.select("td[data-mqtitle='date']")) {
-                    if (Objects.equals(a.text(), month + "월 " + day + "일")) {
-                        select = i;
-                        break;
-                    }
-                    i += 1;
-                }
+                List<String> list = Arrays.asList(elements.select("td[data-mqtitle='date']").text().replace(" ", "").split("일"));
+                select = list.indexOf(month + "월" + day);
                 Element e = elements.get(select);
                 menu = e.select(food_time_type[select_id]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
             }
@@ -196,5 +159,3 @@ public class AlarmReceiver extends BroadcastReceiver {
         }).start();
     }
 }
-
-
