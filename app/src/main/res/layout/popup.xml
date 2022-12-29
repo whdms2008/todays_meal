@@ -145,6 +145,7 @@
 
     <TextView
         android:id="@+id/food_rooms_show"
+        android:textColor="#DA000000"
         android:fontFamily="@font/scd6"
         android:visibility="gone"
         android:layout_width="match_parent"
