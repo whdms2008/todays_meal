@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.content.SharedPreferences;
 import android.icu.text.SimpleDateFormat;
-import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -77,9 +76,6 @@ public class AlarmReceiver extends BroadcastReceiver {
             return;
         }
         calendar = Calendar.getInstance();
-        System.out.println("putData : " + intent.getIntExtra("putData", 0));
-        System.out.println("cancel : " + intent.getIntExtra("cancel", 0));
-        System.out.println("code : " + intent.getIntExtra("code", 0));
         select_id = intent.getIntExtra("putData", 0);
         intent = new Intent(context, MainActivity.class);
         intent.setAction(Intent.ACTION_MAIN);
@@ -110,7 +106,6 @@ public class AlarmReceiver extends BroadcastReceiver {
                     e.printStackTrace();
                 }
             }
-            int i = 0;
 
             elements = document.select("tbody").select("tr"); //필요한 녀석만 꼬집어서 지정
             if (select_room != 0) {
@@ -126,8 +121,6 @@ public class AlarmReceiver extends BroadcastReceiver {
                     }
                 }
             } else {
-
-                System.out.println("기숙사!!!");
                 List<String> list = Arrays.asList(elements.select("td[data-mqtitle='date']").text().replace(" ", "").split("일"));
                 select = list.indexOf(month + "월" + day);
                 Element e = elements.get(select);

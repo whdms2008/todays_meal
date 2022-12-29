@@ -2,6 +2,7 @@ package com.example.term_project;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
 import android.annotation.SuppressLint;
@@ -46,6 +47,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -169,7 +171,9 @@ public class MainActivity extends AppCompatActivity {
 
 
         notify_icon = findViewById(R.id.notification);
-
+        notify_icon.setImageDrawable(
+                notify ? getDrawable(R.drawable.true_notification) : getDrawable(R.drawable.false_notfication)
+        );
         notify_icon.setOnClickListener(view -> {
             if (notify) {
                 cancelAlarm();
@@ -180,12 +184,6 @@ public class MainActivity extends AppCompatActivity {
             }
             editor.apply();
         });
-        if (notify) {
-            notify_icon.setImageDrawable(getDrawable(R.drawable.true_notification));
-        } else {
-            notify_icon.setImageDrawable(getDrawable(R.drawable.false_notfication));
-        }
-
 
         bottomNavigationView = findViewById(R.id.menus);
         today_date.setText(month + "월 " + day + "일");
@@ -200,34 +198,19 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationView.setOnItemSelectedListener(item -> {
             switch (item.getItemId()) {
                 case R.id.sun_rise:
-                    bundle.putString("numbers", "0");                               //핸들러를 이용해서 Thread()에서 가져온 데이터를 메인 쓰레드에 보내준다.
-                    Message msg = handler.obtainMessage();
-                    msg.setData(bundle);
-                    handler.sendMessage(msg);
+                    sendMessageToHandler("0");
                     break;
                 case R.id.sun:
-                    bundle.putString("numbers", "1");                               //핸들러를 이용해서 Thread()에서 가져온 데이터를 메인 쓰레드에 보내준다.
-                    Message msg2 = handler.obtainMessage();
-                    msg2.setData(bundle);
-                    handler.sendMessage(msg2);
+                    sendMessageToHandler("1");
                     break;
                 case R.id.moon:
-                    bundle.putString("numbers", "2");                               //핸들러를 이용해서 Thread()에서 가져온 데이터를 메인 쓰레드에 보내준다.
-                    Message msg3 = handler.obtainMessage();
-                    msg3.setData(bundle);
-                    handler.sendMessage(msg3);
+                    sendMessageToHandler("2");
                     break;
                 case R.id.campus:
-                    bundle.putString("numbers", "3");                               //핸들러를 이용해서 Thread()에서 가져온 데이터를 메인 쓰레드에 보내준다.
-                    Message msg4 = handler.obtainMessage();
-                    msg4.setData(bundle);
-                    handler.sendMessage(msg4);
+                    sendMessageToHandler("3");
                     break;
                 case R.id.menu:
-                    bundle.putString("numbers", "4");                               //핸들러를 이용해서 Thread()에서 가져온 데이터를 메인 쓰레드에 보내준다.
-                    Message msg5 = handler.obtainMessage();
-                    msg5.setData(bundle);
-                    handler.sendMessage(msg5);
+                    sendMessageToHandler("4");
                     break;
             }
             return true;
@@ -243,6 +226,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void sendMessageToHandler(String nums) {
+        bundle.putString("numbers", nums);
+        Message msg = handler.obtainMessage();
+        msg.setData(bundle);
+        handler.sendMessage(msg);
+    }
+
     @SuppressLint("UseCompatLoadingForDrawables")
     private void cancelAlarm() {
         notify = false;
@@ -252,20 +242,18 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intent = new Intent(this, AlarmReceiver.class);
 
-
         if (alarmManager == null) {
-
             alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-
         }
-        pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-        alarmManager.cancel(pendingIntent);
 
-        pendingIntent = PendingIntent.getBroadcast(this, 1, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-        alarmManager.cancel(pendingIntent);
+        List<PendingIntent> pendingIntents = new ArrayList<>();
+        pendingIntents.add(PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
+        pendingIntents.add(PendingIntent.getBroadcast(this, 1, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
+        pendingIntents.add(PendingIntent.getBroadcast(this, 2, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
 
-        pendingIntent = PendingIntent.getBroadcast(this, 2, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-        alarmManager.cancel(pendingIntent);
+        for (PendingIntent pendingIntent : pendingIntents) {
+            alarmManager.cancel(pendingIntent);
+        }
 
     }
 
@@ -276,20 +264,18 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
         notify_icon.setImageDrawable(getDrawable(R.drawable.true_notification));
         calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, 17);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
-        createNotificationChannel("0");
+        createNotificationChannel();
 
-        makeNotification(7, 30, 0, 0);
-
-        makeNotification(11, 40, 1, 1);
-
-        makeNotification(17, 30, 2, 2);
-
+        int[][] alarms = {{7, 30, 0, 0}, {11, 40, 1, 1}, {17, 30, 2, 2}};
+        for (int[] alarm : alarms) {
+            makeNotification(alarm[0], alarm[1], alarm[2], alarm[3]);
+        }
     }
+
 
     @SuppressLint("UnspecifiedImmutableFlag")
     private void makeNotification(int hour, int minute, int requestCode, int putData) {
@@ -305,13 +291,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void createNotificationChannel(String id) {
+    private void createNotificationChannel() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = "알림";
             String description = "알림입니다!";
             int importance = NotificationManager.IMPORTANCE_HIGH;
-            NotificationChannel channel = new NotificationChannel(id, name, importance);
+            NotificationChannel channel = new NotificationChannel("0", name, importance);
             channel.setDescription(description);
 
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
@@ -320,6 +306,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+
     Handler handler = new Handler(Looper.getMainLooper()) {
         @SuppressLint({"SetTextI18n", "UseCompatLoadingForDrawables"})
         @Override
@@ -327,16 +315,21 @@ public class MainActivity extends AppCompatActivity {
             Bundle bundle = msg.getData();
             nums = Integer.parseInt(bundle.getString("numbers"));
             new Thread(() -> {
-                if (nums == 0 || nums == 1 || nums == 2) {
-                    food_type.setText(food_time_name[nums]);
-                    editor.putInt("select_time", nums);
-                    editor.apply();
-                    load_food(nums);
-                } else if (nums == 3) {
-                    popup(0);
-                } else if (nums == 4) {
-                    popup(1);
-
+                switch (nums) {
+                    case 0:
+                    case 1:
+                    case 2:
+                        food_type.setText(food_time_name[nums]);
+                        editor.putInt("select_time", nums);
+                        editor.apply();
+                        load_food(nums);
+                        break;
+                    case 3:
+                        popup(0);
+                        break;
+                    case 4:
+                        popup(1);
+                        break;
                 }
             }).start();
         }
@@ -434,21 +427,21 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 });
-
-
-                if (first_chk_rest == 0) {
-                    room_type_1.performClick();
-                    try {
-
-                        food_rooms_view.getChildAt(first_chk_dorm).performClick();
-                    } catch (Exception e) {
-                        System.out.println(e);
-                    }
-                } else if (first_chk_rest == 1) {
-
-                    room_type_2.performClick();
-                } else {
-                    room_type_3.performClick();
+                switch (first_chk_rest) {
+                    case 0:
+                        room_type_1.performClick();
+                        try {
+                            food_rooms_view.getChildAt(first_chk_dorm).performClick();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        break;
+                    case 1:
+                        room_type_2.performClick();
+                        break;
+                    case 2:
+                        room_type_3.performClick();
+                        break;
                 }
 
                 // ================= 기숙사 식당 선택 ==================
@@ -486,11 +479,13 @@ public class MainActivity extends AppCompatActivity {
                     int morning = 9 * 60;
                     int lunch = 13 * 60 + 30;
                     int dinner = 19 * 60;
-                    if (dinner - time_all > 0) {
+                    if (dinner - time_all >= 0) {
                         findViewById(R.id.moon).performClick();
-                    } else if (lunch - time_all > 0) {
+                    } else if (lunch - time_all >= 0) {
                         findViewById(R.id.sun).performClick();
-                    } else if (morning - time_all > 0) {
+                    } else if (morning - time_all >= 0) {
+                        findViewById(R.id.sun_rise).performClick();
+                    } else {
                         findViewById(R.id.sun_rise).performClick();
                     }
                     dialog01.dismiss(); // 다이얼로그 닫기
@@ -590,7 +585,8 @@ public class MainActivity extends AppCompatActivity {
         rdb.setText(content);
         rdb.setButtonDrawable(getDrawable(R.drawable.radio_selector));
         rdb.setBackground(getDrawable(R.drawable.radio_selector));
-        rdb.setTextColor(getResources().getColorStateList(R.drawable.radio_text_selector));
+        int color = ContextCompat.getColor(this, R.drawable.radio_text_selector);
+        rdb.setTextColor(color);
         rdb.setGravity(Gravity.CENTER);
         Typeface typeface = getResources().getFont(R.font.scd5);
         rdb.setTypeface(typeface);
@@ -601,9 +597,7 @@ public class MainActivity extends AppCompatActivity {
         param.weight = (float) 1;
         rdb.setWidth(0);
         rdb.setHeight(150);
-        rdb.setOnClickListener(view -> {
-            Temporary_food_room_num.set(number);
-        });
+        rdb.setOnClickListener(view -> Temporary_food_room_num.set(number));
         return rdb;
     }
 
