@@ -1,4 +1,4 @@
-package com.example.term_project;
+package com.whats_meal.term_project;
 
 import org.junit.Test;
 

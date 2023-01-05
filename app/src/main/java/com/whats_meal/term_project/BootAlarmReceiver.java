@@ -1,4 +1,4 @@
-package com.example.term_project;
+package com.whats_meal.term_project;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;

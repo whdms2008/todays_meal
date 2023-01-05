@@ -1,4 +1,4 @@
-package com.example.term_project;
+package com.whats_meal.term_project;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -10,9 +10,12 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.content.SharedPreferences;
 import android.icu.text.SimpleDateFormat;
+import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+
+import com.whats_meal.term_project.R;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -69,7 +72,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     @SuppressLint("UnspecifiedImmutableFlag")
     @Override
     public void onReceive(Context context, Intent intent) {
-
+        Log.i("data", "알람 실행됨!"+ intent.getIntExtra("putDATA",0)+", 현재시간:" + Arrays.toString(getDate.split(":")));
         pref = context.getSharedPreferences("pref", Activity.MODE_PRIVATE);
         editor = pref.edit();
         if (!pref.getBoolean("notify", false)) {

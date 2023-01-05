@@ -1,4 +1,4 @@
-package com.example.term_project;
+package com.whats_meal.term_project;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -38,6 +38,7 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.whats_meal.term_project.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import org.json.JSONArray;
@@ -532,8 +533,8 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     List<String> list = Arrays.asList(elements.select("td[data-mqtitle='date']").text().replace(" ", "").split("일"));
                     select = list.indexOf(month + "월" + day);
-
                     Element e = elements.get(select);
+
                     for (int cnt = 0; cnt < today_menus.length; cnt++) {
                         today_menus[cnt] = e.select(food_time_type[cnt]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
                     }
