@@ -23,6 +23,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -32,7 +33,7 @@ import java.util.Objects;
 public class AlarmReceiver extends BroadcastReceiver {
     SharedPreferences pref;
     SharedPreferences.Editor editor;
-    String CHANNEL_ID = "0";
+    String CHANNEL_ID = "JoEun_Notification_Channel";
     String menu = "";
     int[] drawables = {R.drawable.sun_morning, R.drawable.breakfast, R.drawable.dinner_icon};
     int select_id = 0;
@@ -53,7 +54,6 @@ public class AlarmReceiver extends BroadcastReceiver {
     String[] title = {"조식 메뉴", "중식 메뉴", "석식 메뉴"};
 
     int select = 0;
-    int requestCode = 0;
     long now = System.currentTimeMillis();
 
     Date date = new Date(now);
@@ -72,7 +72,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     @SuppressLint("UnspecifiedImmutableFlag")
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.i("data", "알람 실행됨!"+ intent.getIntExtra("putDATA",0)+", 현재시간:" + Arrays.toString(getDate.split(":")));
+        Log.i("data", "알람 실행됨!" + intent.getIntExtra("putDATA", 0) + ", 현재시간:" + Arrays.toString(getDate.split(":")));
         pref = context.getSharedPreferences("pref", Activity.MODE_PRIVATE);
         editor = pref.edit();
         if (!pref.getBoolean("notify", false)) {
@@ -86,8 +86,37 @@ public class AlarmReceiver extends BroadcastReceiver {
         editor.apply();
 
         alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, select_id, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         Notification(pendingIntent, context);
+        remindAlarm(context);
+    }
+
+    private void remindAlarm(Context context) {
+        Intent intent = new Intent(context, AlarmReceiver.class);
+        switch (select_id){
+            case 0:
+                calendar.set(Calendar.HOUR_OF_DAY, 7);
+                calendar.set(Calendar.MINUTE, 30);
+                break;
+            case 1:
+                calendar.set(Calendar.HOUR_OF_DAY, 11);
+                calendar.set(Calendar.MINUTE, 40);
+                break;
+            case 2:
+                calendar.set(Calendar.HOUR_OF_DAY, 17);
+                calendar.set(Calendar.MINUTE, 30);
+                break;
+        }
+        intent.putExtra("putData", select_id);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, select_id, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+        calendar.add(Calendar.DATE,1);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,calendar.getTimeInMillis(),pendingIntent
+                );
+        Log.i("data", select_id + ", " + (calendar.get(Calendar.MONTH)+1)+"월 "+  calendar.get(Calendar.DATE)+"일 "+calendar
+                .get(Calendar.HOUR_OF_DAY)+"시 "+calendar.get(Calendar.MINUTE)+"분 알람 예약됨.");
 
     }
 
@@ -145,6 +174,7 @@ public class AlarmReceiver extends BroadcastReceiver {
                     .setVibrate(new long[]{0, 3000})
                     .setContentIntent(pendingIntent)
                     .setDefaults(android.app.Notification.DEFAULT_ALL)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
                     .setChannelId(CHANNEL_ID)
                     .setColor(Color.parseColor("#ffffff"))
                     .setStyle(new NotificationCompat.BigTextStyle().bigText(menu));

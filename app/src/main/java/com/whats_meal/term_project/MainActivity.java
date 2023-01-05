@@ -1,10 +1,6 @@
 package com.whats_meal.term_project;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.res.ResourcesCompat;
-
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlarmManager;
@@ -19,7 +15,6 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.icu.text.SimpleDateFormat;
-
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -38,7 +33,13 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.whats_meal.term_project.R;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
+
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import org.json.JSONArray;
@@ -257,12 +258,30 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
-
+    private final ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    // Permission is granted. Continue the action or workflow in your
+                    // app.
+                    Log.i("data","허용!!");
+                } else {
+                    Log.i("data","허용안함!!");
+                    // Explain to the user that the feature is unavailable because the
+                    // feature requires a permission that the user has denied. At the
+                    // same time, respect the user's decision. Don't link to system
+                    // settings in an effort to convince the user to change their
+                    // decision.
+                }
+            });
     @SuppressLint({"UseCompatLoadingForDrawables", "UnspecifiedImmutableFlag"})
     private void setAlarm() {
+        if(Build.VERSION_CODES.TIRAMISU == Build.VERSION.SDK_INT){
+            requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+        }
         notify = true;
         editor.putBoolean("notify", true);
         editor.apply();
+
         notify_icon.setImageDrawable(getDrawable(R.drawable.true_notification));
         calendar = Calendar.getInstance();
         calendar.set(Calendar.SECOND, 0);
@@ -271,24 +290,24 @@ public class MainActivity extends AppCompatActivity {
 
         createNotificationChannel();
 
-        int[][] alarms = {{7, 30, 0, 0}, {11, 40, 1, 1}, {17, 30, 2, 2}};
+        int[][] alarms = {{7, 30, 0}, {11, 40, 1}, {17, 30, 2}};
         for (int[] alarm : alarms) {
-            makeNotification(alarm[0], alarm[1], alarm[2], alarm[3]);
+            makeNotification(alarm[0], alarm[1], alarm[2]);
         }
     }
 
 
     @SuppressLint("UnspecifiedImmutableFlag")
-    private void makeNotification(int hour, int minute, int requestCode, int putData) {
+    private void makeNotification(int hour, int minute, int putData) {
         Intent intent = new Intent(this, AlarmReceiver.class);
         intent.putExtra("putData", putData);
-        intent.putExtra("requestCode", requestCode);
         calendar.set(Calendar.HOUR_OF_DAY, hour);
         calendar.set(Calendar.MINUTE, minute);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
-        pendingIntent = PendingIntent.getBroadcast(this, requestCode, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
+        pendingIntent = PendingIntent.getBroadcast(this, putData, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+//        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
     }
 
 
@@ -298,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
             CharSequence name = "알림";
             String description = "알림입니다!";
             int importance = NotificationManager.IMPORTANCE_HIGH;
-            NotificationChannel channel = new NotificationChannel("0", name, importance);
+            NotificationChannel channel = new NotificationChannel("JoEun_Notification_Channel", name, importance);
             channel.setDescription(description);
 
             NotificationManager notificationManager = getSystemService(NotificationManager.class);

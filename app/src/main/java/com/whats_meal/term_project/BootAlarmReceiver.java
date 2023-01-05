@@ -37,26 +37,26 @@ public class BootAlarmReceiver extends BroadcastReceiver {
 
         Log.i("data","알람 설정 시작");
         calendar = Calendar.getInstance();
-        Intent alarmIntent = new Intent(context, AlarmReceiver.class);
         alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
         createNotificationChannel(context);
 
-        makeNotification(context, alarmIntent, 7, 30, 0, 0);
+        makeNotification(context,7, 30, 0);
 
-        makeNotification(context, alarmIntent, 11, 40, 1, 1);
+        makeNotification(context,11, 40, 1);
 
-        makeNotification(context, alarmIntent, 17, 30, 2, 2);
+        makeNotification(context,17, 30, 2);
 
     }
 
-    private void makeNotification(Context context, Intent intent, int hour, int minute, int requestCode, int putData) {
+    private void makeNotification(Context context, int hour, int minute, int putData) {
+        Intent intent = new Intent(context, AlarmReceiver.class);
         intent.putExtra("putData", putData);
-        intent.putExtra("requestCode", requestCode);
         calendar.set(Calendar.HOUR_OF_DAY, hour);
         calendar.set(Calendar.MINUTE, minute);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
+
 
         Log.i("data","알람 설정 : "+
                 calendar.get(Calendar.MONTH) + "월" +
@@ -65,8 +65,9 @@ public class BootAlarmReceiver extends BroadcastReceiver {
                 calendar.get(Calendar.MINUTE)+ ":" +
                 calendar.get(Calendar.SECOND)+ ":" +
                 calendar.get(Calendar.MILLISECOND));
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, putData, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+//        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
+        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
     }
 
     private void createNotificationChannel(Context context) {
@@ -75,7 +76,7 @@ public class BootAlarmReceiver extends BroadcastReceiver {
             CharSequence name = "알림";
             String description = "알림입니다!";
             int importance = NotificationManager.IMPORTANCE_HIGH;
-            NotificationChannel channel = new NotificationChannel("0", name, importance);
+            NotificationChannel channel = new NotificationChannel("JoEun_Notification_Channel", name, importance);
             channel.setDescription(description);
 
             NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
