@@ -25,19 +25,20 @@ public class BootAlarmReceiver extends BroadcastReceiver {
             {"", "", ""},// 아침[천안[기식,학식,직원]]
             {"", "", ""},// 아침[예산[기식,학식,직원]]
             {"07:30 ~ 09:00", "", ""} // 아침[신관[기식,학식,직원]]
-    },{
+    }, {
             {"11:40 ~ 13:30", "11:30 ~ 13:30", "11:30 ~ 13:30"}, // 점심[천안[기식,학식,직원]]
             {"", "12:00 ~ 13:30", "12:00 ~ 13:30"}, // 점심[예산[기식,학식,직원]]
             {"11:30 ~ 13:30", "11:30 ~ 13:30", "11:30 ~ 13:30"}  // 점심[신관[기식,학식,직원]]
-    },{
+    }, {
             {"17:40 ~ 19:00", "", ""}, // 저녁[천안[기식,학식,직원]]
             {"", "17:40 ~ 19:00", ""}, // 저녁[예산[기식,학식,직원]]
             {"17:30 ~ 19:00", "", ""}} // 저녁[신관[기식,학식,직원]]
     };
+
     @Override
     public void onReceive(Context context, Intent intent) {
         pref = context.getSharedPreferences("pref", Activity.MODE_PRIVATE);
-        boolean chk = pref.getBoolean("notify",false);
+        boolean chk = pref.getBoolean("notify", false);
         if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED") && chk) {
             setAlarm(context);
         }
@@ -50,17 +51,16 @@ public class BootAlarmReceiver extends BroadcastReceiver {
         createNotificationChannel(context);
         int select_campus = pref.getInt("select_campus", 0);
         int select_room = pref.getInt("select_restaurant", 0);
-        int[] t1 =  Arrays.stream(food_time[0][select_campus][select_room].split(" ~ ")[0].split(":")).mapToInt(Integer::parseInt).toArray();
-        int[] t2 =  Arrays.stream(food_time[1][select_campus][select_room].split(" ~ ")[0].split(":")).mapToInt(Integer::parseInt).toArray();
-        int[] t3 =  Arrays.stream(food_time[2][select_campus][select_room].split(" ~ ")[0].split(":")).mapToInt(Integer::parseInt).toArray();
 
-        int[][] alarms = {{t1[0], t1[1], 0}, {t2[0], t2[1], 1}, {t3[0], t3[1], 2}};
-
-        for (int[] alarm : alarms) {
-            makeNotification(context, alarm[0], alarm[1], alarm[2]);
-            Log.i("data","알람 입력");
+        int[][] time = {{}, {}, {}};
+        for (int i = 0; i < 3; i++) {
+            try {
+                time[i] = Arrays.stream(food_time[i][select_campus][select_room].split(" ~ ")[0].split(":")).mapToInt(Integer::parseInt).toArray();
+                makeNotification(context, time[i][0], time[i][1], i);
+            } catch (NumberFormatException e) {
+                time[i] = new int[]{0, 0};
+            }
         }
-
     }
 
     private void makeNotification(Context context, int hour, int minute, int putData) {

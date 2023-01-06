@@ -99,11 +99,11 @@ public class MainActivity extends AppCompatActivity {
             {"", "", ""},// 아침[천안[기식,학식,직원]]
             {"", "", ""},// 아침[예산[기식,학식,직원]]
             {"07:30 ~ 09:00", "", ""} // 아침[신관[기식,학식,직원]]
-    },{
+    }, {
             {"11:40 ~ 13:30", "11:30 ~ 13:30", "11:30 ~ 13:30"}, // 점심[천안[기식,학식,직원]]
             {"", "12:00 ~ 13:30", "12:00 ~ 13:30"}, // 점심[예산[기식,학식,직원]]
             {"11:30 ~ 13:30", "11:30 ~ 13:30", "11:30 ~ 13:30"}  // 점심[신관[기식,학식,직원]]
-    },{
+    }, {
             {"17:40 ~ 19:00", "", ""}, // 저녁[천안[기식,학식,직원]]
             {"", "17:40 ~ 19:00", ""}, // 저녁[예산[기식,학식,직원]]
             {"17:30 ~ 19:00", "", ""}} // 저녁[신관[기식,학식,직원]]
@@ -299,25 +299,15 @@ public class MainActivity extends AppCompatActivity {
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
         createNotificationChannel();
-        int[][] time = {{},{},{}};
-        for (int i = 0; i<3;i++){
-            try{
-            time[i] =  Arrays.stream(food_time[i][select_campus][select_room].split(" ~ ")[0].split(":")).mapToInt(Integer::parseInt).toArray();
-
-            Log.i("data", "1번 : " + Arrays.toString(time[i]));
-            makeNotification(time[i][0], time[i][1], i);
-            }catch (NumberFormatException e){
+        int[][] time = {{}, {}, {}};
+        for (int i = 0; i < 3; i++) {
+            try {
+                time[i] = Arrays.stream(food_time[i][select_campus][select_room].split(" ~ ")[0].split(":")).mapToInt(Integer::parseInt).toArray();
+                makeNotification(time[i][0], time[i][1], i);
+            } catch (NumberFormatException e) {
                 time[i] = new int[]{0, 0};
             }
         }
-//        Log.i("data", "2번 : " + Arrays.toString(time[1]));
-//        Log.i("data", "3번 : " + Arrays.toString(time[2]));
-//        int[][] alarms = {{t1[0], t1[1], 0}, {t2[0], t2[1], 1}, {t3[0], t3[1], 2}};
-//        for (int[] alarm : alarms) {
-//            if(alarm[0] != 0){
-//                makeNotification(alarm[0], alarm[1], alarm[2]);
-//            }
-//        }
     }
 
 
