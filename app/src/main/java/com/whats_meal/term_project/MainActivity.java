@@ -154,8 +154,8 @@ public class MainActivity extends AppCompatActivity {
         food_menu = findViewById(R.id.food_menu);
         food_type_icon = findViewById(R.id.food_type_icon);
 
-        dialog01 = new Dialog(MainActivity.this);       // Dialog 초기화
-        dialog01.requestWindowFeature(Window.FEATURE_NO_TITLE); // 타이틀 제거
+        dialog01 = new Dialog(MainActivity.this);
+        dialog01.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog01.setContentView(R.layout.popup);
         WindowManager.LayoutParams params = dialog01.getWindow().getAttributes();
         params.width = LinearLayout.LayoutParams.MATCH_PARENT;
@@ -163,8 +163,8 @@ public class MainActivity extends AppCompatActivity {
         dialog01.getWindow().setAttributes(params);
 
 
-        menu_dialog = new Dialog(MainActivity.this);       // Dialog 초기화
-        menu_dialog.requestWindowFeature(Window.FEATURE_NO_TITLE); // 타이틀 제거
+        menu_dialog = new Dialog(MainActivity.this);
+        menu_dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         menu_dialog.setContentView(R.layout.setting);
         WindowManager.LayoutParams menu_params = menu_dialog.getWindow().getAttributes();
         menu_params.width = LinearLayout.LayoutParams.MATCH_PARENT;
