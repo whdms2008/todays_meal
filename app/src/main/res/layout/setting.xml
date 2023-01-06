@@ -36,7 +36,7 @@
                 <TextView
                     android:fontFamily="@font/scd6"
                     android:textColor="#94000000"
-                    android:text="학교"
+                    android:text="앱명"
                     android:textSize="15sp"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
@@ -48,7 +48,7 @@
                 <TextView
                     android:fontFamily="@font/scd5"
                     android:textColor="#94000000"
-                    android:text="공주대 공과대학"
+                    android:text="오늘 밥 뭐더라?"
                     android:textSize="15sp"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
@@ -67,7 +67,7 @@
                 <TextView
                     android:fontFamily="@font/scd6"
                     android:textColor="#94000000"
-                    android:text="학년"
+                    android:text="학교"
                     android:textSize="15sp"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
@@ -79,7 +79,7 @@
                 <TextView
                     android:fontFamily="@font/scd5"
                     android:textColor="#94000000"
-                    android:text="3학년"
+                    android:text="공주대학교 공과대학"
                     android:textSize="15sp"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
@@ -170,9 +170,10 @@
                     android:background="@color/main_green"
                     />
                 <TextView
+                    android:id="@+id/app_version"
                     android:fontFamily="@font/scd5"
                     android:textColor="#94000000"
-                    android:text="1.0"
+                    android:text="0.0.0"
                     android:textSize="15sp"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"

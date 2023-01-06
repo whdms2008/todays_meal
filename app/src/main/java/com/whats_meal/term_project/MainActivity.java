@@ -11,8 +11,9 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.icu.text.SimpleDateFormat;
 import android.os.Build;
@@ -76,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
                     "https://dormi.kongju.ac.kr/HOME/sub.php?code=041302"}}; // 신관 생활관 식당 [ 드림 ]
 
     String[] today_menus = {"", "", ""}; // 조식메뉴, 중식, 석식
-    
+
     String[] student_name = {"천안", "예산", "신관"};
 
     String[][] restaurants = {{},
@@ -348,6 +349,16 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    public static String getVersion(Context context) {
+        String versionName = "";
+        try {
+            PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+            versionName = pInfo.versionName + "";
+        } catch(PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        return versionName;
+    }
 
     @SuppressLint("SetTextI18n")
     private void popup(int num) {
@@ -489,14 +500,11 @@ public class MainActivity extends AppCompatActivity {
                     today_menus[2] = "";
 
                     int time_all = (f_hour * 60) + f_minute;
-                    int morning = 9 * 60;
-                    int lunch = 13 * 60 + 30;
-                    int dinner = 19 * 60;
-                    if (dinner - time_all >= 0) {
+                    if (19 * 60 - time_all >= 0) {
                         findViewById(R.id.moon).performClick();
-                    } else if (lunch - time_all >= 0) {
+                    } else if (13 * 60 + 30 - time_all >= 0) {
                         findViewById(R.id.sun).performClick();
-                    } else if (morning - time_all >= 0) {
+                    } else if (9 * 60 - time_all >= 0) {
                         findViewById(R.id.sun_rise).performClick();
                     } else {
                         findViewById(R.id.sun_rise).performClick();
@@ -506,8 +514,8 @@ public class MainActivity extends AppCompatActivity {
             } else { // 메뉴
                 menu_dialog.show(); // 다이얼로그 띄우기
                 menu_dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-
-
+                TextView app_version =  menu_dialog.findViewById(R.id.app_version);
+                app_version.setText(getVersion(this));
                 menu_dialog.findViewById(R.id.confirm_btn).setOnClickListener(view -> {
                     menu_dialog.dismiss(); // 다이얼로그 닫기
                 });
@@ -515,18 +523,13 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-
     @SuppressLint("SetTextI18n")
     private void load_food(int numbers) {
         try {
             Document document;
             Elements elements;
             if ((Objects.equals(today_menus[0], "") && Objects.equals(today_menus[1], "")) && Objects.equals(today_menus[2], "")) {
-                if (select_room != 0) {
-                    document = Jsoup.connect(restaurants[select_room][select_campus]).get();
-                } else {
-                    document = Jsoup.connect(campus[select_campus][select_food_room]).get();
-                }
+                document = Jsoup.connect(select_room != 0 ? restaurants[select_room][select_campus] : campus[select_campus][select_food_room]).get();
                 elements = document.select("tbody tr");
                 if (select_room != 0) {
                     select = document.select("thead tr th").indexOf(document.select("th.on").first());
@@ -553,9 +556,7 @@ public class MainActivity extends AppCompatActivity {
                             today_menus[cnt] = e.select(food_time_type[cnt]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
                         }
                     } catch (ArrayIndexOutOfBoundsException e) {
-                        today_menus[0] = "";
-                        today_menus[1] = "";
-                        today_menus[2] = "";
+                        Arrays.fill(today_menus, "");
                         e.printStackTrace();
                     }
                     setStringArrayPref(today_menus);
@@ -587,14 +588,12 @@ public class MainActivity extends AppCompatActivity {
         tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
         tv.setTextSize(2, 25);
         tv.setIncludeFontPadding(false);
-        Typeface typeface = getResources().getFont(R.font.scd5);
-        tv.setTypeface(typeface);
+        tv.setTypeface(getResources().getFont(R.font.scd5));
         LinearLayout.LayoutParams param = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT
-                , LinearLayout.LayoutParams.WRAP_CONTENT);
+                , LinearLayout.LayoutParams.WRAP_CONTENT, 1);
         param.leftMargin = 20;
         param.rightMargin = 20;
-        param.weight = 1;
         tv.setLayoutParams(param);
         return tv;
     }
@@ -609,29 +608,19 @@ public class MainActivity extends AppCompatActivity {
         int color = ContextCompat.getColor(this, R.drawable.radio_text_selector);
         rdb.setTextColor(color);
         rdb.setGravity(Gravity.CENTER);
-        Typeface typeface = getResources().getFont(R.font.scd5);
-        rdb.setTypeface(typeface);
-        LinearLayout.LayoutParams param = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT
-                , LinearLayout.LayoutParams.WRAP_CONTENT);
-        rdb.setLayoutParams(param);
-        param.weight = (float) 1;
-        rdb.setWidth(0);
-        rdb.setHeight(150);
+        rdb.setTypeface(getResources().getFont(R.font.scd5));
+        rdb.setLayoutParams(new LinearLayout.LayoutParams(0, 150, 1));
         rdb.setOnClickListener(view -> Temporary_food_room_num.set(number));
         return rdb;
     }
 
     private void setStringArrayPref(String[] values) {
-        JSONArray a = new JSONArray();
-        for (String value : values) {
-            a.put(value);
-        }
-        if (values.length != 0) {
-            editor.putString("food_menus", a.toString());
+        String jsonString;
+        if (values.length == 0) {
+            jsonString = null;
         } else {
-            editor.putString("food_menus", null);
+            jsonString = new JSONArray(Arrays.asList(values)).toString();
         }
-        editor.apply();
+        editor.putString("food_menus", jsonString).apply();
     }
 }
