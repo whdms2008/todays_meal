@@ -95,7 +95,21 @@ public class MainActivity extends AppCompatActivity {
 
     String[] food_time_type = {"td[data-mqtitle='breakfast']", "td[data-mqtitle='lunch']", "td[data-mqtitle='dinner']"};
     String[] dinner_type_name = {"기숙사 식당", "학생식당", "교직원식당"};
-    String[] food_time = {"07:30 ~ 09:00", "11:40 ~ 13:30", "17:30 ~ 19:00"};
+    String[][][] food_time = {{
+            {"", "", ""},// 아침[천안[기식,학식,직원]]
+            {"", "", ""},// 아침[예산[기식,학식,직원]]
+            {"07:30 ~ 09:00", "", ""} // 아침[신관[기식,학식,직원]]
+    },{
+            {"11:40 ~ 13:30", "11:30 ~ 13:30", "11:30 ~ 13:30"}, // 점심[천안[기식,학식,직원]]
+            {"", "12:00 ~ 13:30", "12:00 ~ 13:30"}, // 점심[예산[기식,학식,직원]]
+            {"11:30 ~ 13:30", "11:30 ~ 13:30", "11:30 ~ 13:30"}  // 점심[신관[기식,학식,직원]]
+    },{
+            {"17:40 ~ 19:00", "", ""}, // 저녁[천안[기식,학식,직원]]
+            {"", "17:40 ~ 19:00", ""}, // 저녁[예산[기식,학식,직원]]
+            {"17:30 ~ 19:00", "", ""}} // 저녁[신관[기식,학식,직원]]
+    };
+
+
     String[][] food_room_name = {{"천안"}, {"예산"}, {"은행사/비전", "드림"}};
     String[] food_time_name = {"조식", "중식", "석식"};
     final Bundle bundle = new Bundle();
@@ -285,11 +299,25 @@ public class MainActivity extends AppCompatActivity {
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
         createNotificationChannel();
+        int[][] time = {{},{},{}};
+        for (int i = 0; i<3;i++){
+            try{
+            time[i] =  Arrays.stream(food_time[i][select_campus][select_room].split(" ~ ")[0].split(":")).mapToInt(Integer::parseInt).toArray();
 
-        int[][] alarms = {{7, 30, 0}, {11, 40, 1}, {17, 30, 2}};
-        for (int[] alarm : alarms) {
-            makeNotification(alarm[0], alarm[1], alarm[2]);
+            Log.i("data", "1번 : " + Arrays.toString(time[i]));
+            makeNotification(time[i][0], time[i][1], i);
+            }catch (NumberFormatException e){
+                time[i] = new int[]{0, 0};
+            }
         }
+//        Log.i("data", "2번 : " + Arrays.toString(time[1]));
+//        Log.i("data", "3번 : " + Arrays.toString(time[2]));
+//        int[][] alarms = {{t1[0], t1[1], 0}, {t2[0], t2[1], 1}, {t3[0], t3[1], 2}};
+//        for (int[] alarm : alarms) {
+//            if(alarm[0] != 0){
+//                makeNotification(alarm[0], alarm[1], alarm[2]);
+//            }
+//        }
     }
 
 
@@ -297,6 +325,8 @@ public class MainActivity extends AppCompatActivity {
     private void makeNotification(int hour, int minute, int putData) {
         Intent intent = new Intent(this, AlarmReceiver.class);
         intent.putExtra("putData", putData);
+        intent.putExtra("hour", hour);
+        intent.putExtra("minute", minute);
         calendar.set(Calendar.HOUR_OF_DAY, hour);
         calendar.set(Calendar.MINUTE, minute);
         calendar.set(Calendar.SECOND, 0);
@@ -354,7 +384,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
             versionName = pInfo.versionName + "";
-        } catch(PackageManager.NameNotFoundException e) {
+        } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
         return versionName;
@@ -514,7 +544,7 @@ public class MainActivity extends AppCompatActivity {
             } else { // 메뉴
                 menu_dialog.show(); // 다이얼로그 띄우기
                 menu_dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-                TextView app_version =  menu_dialog.findViewById(R.id.app_version);
+                TextView app_version = menu_dialog.findViewById(R.id.app_version);
                 app_version.setText(getVersion(this));
                 menu_dialog.findViewById(R.id.confirm_btn).setOnClickListener(view -> {
                     menu_dialog.dismiss(); // 다이얼로그 닫기
@@ -565,7 +595,7 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                 food_type_icon.setImageDrawable(ResourcesCompat.getDrawable(getResources(), food_icon[numbers], null));
                 food_menu.removeAllViews();
-                food_time_view.setText(food_time[numbers]);
+                food_time_view.setText(food_time[numbers][select_campus][select_room]);
                 if (!today_menus[numbers].isEmpty() && !Objects.equals(today_menus[numbers], "등록된 식단내용이(가) 없습니다.")) {
                     List<String> menus = Arrays.asList(today_menus[numbers].split(" "));
                     menus.forEach(menu -> food_menu.addView(makeMenu(menu)));

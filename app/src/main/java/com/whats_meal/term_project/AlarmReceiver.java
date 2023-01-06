@@ -37,6 +37,9 @@ public class AlarmReceiver extends BroadcastReceiver {
     String menu = "";
     int[] drawables = {R.drawable.sun_morning, R.drawable.breakfast, R.drawable.dinner_icon};
     int select_id = 0;
+    int hour = 0;
+    int minute = 0;
+
     String[][] restaurants = {{}, {
             "https://www.kongju.ac.kr/kongju/13157/subview.do", // 천안 학생식당
             "https://www.kongju.ac.kr/kongju/13159/subview.do", // 예산 학생식당
@@ -80,6 +83,8 @@ public class AlarmReceiver extends BroadcastReceiver {
         }
         calendar = Calendar.getInstance();
         select_id = intent.getIntExtra("putData", 0);
+        hour = intent.getIntExtra("hour", 0);
+        minute = intent.getIntExtra("minute", 0);
         intent = new Intent(context, MainActivity.class);
         intent.setAction(Intent.ACTION_MAIN);
         editor.putInt("select_time", select_id);
@@ -93,39 +98,26 @@ public class AlarmReceiver extends BroadcastReceiver {
 
     private void remindAlarm(Context context) {
         Intent intent = new Intent(context, AlarmReceiver.class);
-        switch (select_id){
-            case 0:
-                calendar.set(Calendar.HOUR_OF_DAY, 7);
-                calendar.set(Calendar.MINUTE, 30);
-                break;
-            case 1:
-                calendar.set(Calendar.HOUR_OF_DAY, 11);
-                calendar.set(Calendar.MINUTE, 40);
-                break;
-            case 2:
-                calendar.set(Calendar.HOUR_OF_DAY, 17);
-                calendar.set(Calendar.MINUTE, 30);
-                break;
-        }
+        calendar.set(Calendar.HOUR_OF_DAY, hour);
+        calendar.set(Calendar.MINUTE, minute);
         intent.putExtra("putData", select_id);
+        intent.putExtra("hour", hour);
+        intent.putExtra("minute", minute);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, select_id, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-        calendar.add(Calendar.DATE,1);
+        calendar.add(Calendar.DATE, 1);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
         alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,calendar.getTimeInMillis(),pendingIntent
-                );
+                AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent
+        );
 
     }
 
     private void Notification(PendingIntent pendingIntent, Context context) {
-        int hour = calendar.get(Calendar.HOUR_OF_DAY);
-        int minute = calendar.get(Calendar.MINUTE);
-        int totalMinutes = hour * 60 + minute;
-
-        if (select_id == 0 && totalMinutes > 7 * 60 + 30 ||
-                select_id == 1 && totalMinutes > 11 * 60 + 40 ||
-                select_id == 2 && totalMinutes > 17 * 60 + 30) {
+        int now_hour = calendar.get(Calendar.HOUR_OF_DAY);
+        int now_minute = calendar.get(Calendar.MINUTE);
+        int totalMinutes = now_hour * 60 + now_minute;
+        if (totalMinutes > hour * 60 + minute){
             return;
         }
         int select_room = pref.getInt("select_restaurant", 0);
@@ -162,11 +154,11 @@ public class AlarmReceiver extends BroadcastReceiver {
             } else {
                 List<String> list = Arrays.asList(elements.select("td[data-mqtitle='date']").text().replace(" ", "").split("일"));
                 select = list.indexOf(month + "월" + day);
-                try{
+                try {
 
                     Element e = elements.get(select);
                     menu = e.select(food_time_type[select_id]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
-                }catch (ArrayIndexOutOfBoundsException e){
+                } catch (ArrayIndexOutOfBoundsException e) {
                     menu = "";
                     e.printStackTrace();
                 }
