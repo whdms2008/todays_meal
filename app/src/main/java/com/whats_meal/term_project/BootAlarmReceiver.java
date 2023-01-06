@@ -24,18 +24,13 @@ public class BootAlarmReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         pref = context.getSharedPreferences("pref", Activity.MODE_PRIVATE);
         boolean chk = pref.getBoolean("notify",false);
-        Log.i("data","부트 시작"+chk);
         if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED") && chk) {
             setAlarm(context);
-        }else{
-            Log.i("data","알람설정 안되어있음., "+chk);
         }
     }
 
     @SuppressLint({"UseCompatLoadingForDrawables", "UnspecifiedImmutableFlag"})
     private void setAlarm(Context context) {
-
-        Log.i("data","알람 설정 시작");
         calendar = Calendar.getInstance();
         alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
@@ -57,16 +52,7 @@ public class BootAlarmReceiver extends BroadcastReceiver {
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
 
-
-        Log.i("data","알람 설정 : "+
-                calendar.get(Calendar.MONTH) + "월" +
-                calendar.get(Calendar.DATE) + "일 - " +
-                calendar.get(Calendar.HOUR_OF_DAY)+ ":" +
-                calendar.get(Calendar.MINUTE)+ ":" +
-                calendar.get(Calendar.SECOND)+ ":" +
-                calendar.get(Calendar.MILLISECOND));
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, putData, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-//        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
         alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
     }
 

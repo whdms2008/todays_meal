@@ -258,14 +258,15 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
                     // Permission is granted. Continue the action or workflow in your
                     // app.
-                    Log.i("data","허용!!");
+                    Log.i("data", "허용!!");
                 } else {
-                    Log.i("data","허용안함!!");
+                    Log.i("data", "허용안함!!");
                     // Explain to the user that the feature is unavailable because the
                     // feature requires a permission that the user has denied. At the
                     // same time, respect the user's decision. Don't link to system
@@ -273,9 +274,10 @@ public class MainActivity extends AppCompatActivity {
                     // decision.
                 }
             });
+
     @SuppressLint({"UseCompatLoadingForDrawables", "UnspecifiedImmutableFlag"})
     private void setAlarm() {
-        if(Build.VERSION_CODES.TIRAMISU == Build.VERSION.SDK_INT){
+        if (Build.VERSION_CODES.TIRAMISU == Build.VERSION.SDK_INT) {
             requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
         }
         notify = true;
@@ -307,7 +309,6 @@ public class MainActivity extends AppCompatActivity {
         calendar.set(Calendar.MILLISECOND, 0);
         pendingIntent = PendingIntent.getBroadcast(this, putData, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
-//        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
     }
 
 
@@ -325,7 +326,6 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
-
 
 
     Handler handler = new Handler(Looper.getMainLooper()) {
@@ -534,7 +534,7 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     document = Jsoup.connect(campus[select_campus][select_food_room]).get();
                 }
-                elements = document.select("tbody tr"); //필요한 녀석만 꼬집어서 지정
+                elements = document.select("tbody tr");
                 if (select_room != 0) {
                     select = document.select("thead tr th").indexOf(document.select("th.on").first());
                     Elements elements2 = document.select("tbody");
@@ -552,10 +552,18 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     List<String> list = Arrays.asList(elements.select("td[data-mqtitle='date']").text().replace(" ", "").split("일"));
                     select = list.indexOf(month + "월" + day);
-                    Element e = elements.get(select);
+                    try {
 
-                    for (int cnt = 0; cnt < today_menus.length; cnt++) {
-                        today_menus[cnt] = e.select(food_time_type[cnt]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
+                        Element e = elements.get(select);
+
+                        for (int cnt = 0; cnt < today_menus.length; cnt++) {
+                            today_menus[cnt] = e.select(food_time_type[cnt]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
+                        }
+                    } catch (ArrayIndexOutOfBoundsException e) {
+                        today_menus[0] = "";
+                        today_menus[1] = "";
+                        today_menus[2] = "";
+                        e.printStackTrace();
                     }
                     setStringArrayPref(today_menus);
                 }

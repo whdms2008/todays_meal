@@ -72,7 +72,6 @@ public class AlarmReceiver extends BroadcastReceiver {
     @SuppressLint("UnspecifiedImmutableFlag")
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.i("data", "알람 실행됨!" + intent.getIntExtra("putDATA", 0) + ", 현재시간:" + Arrays.toString(getDate.split(":")));
         pref = context.getSharedPreferences("pref", Activity.MODE_PRIVATE);
         editor = pref.edit();
         if (!pref.getBoolean("notify", false)) {
@@ -115,12 +114,19 @@ public class AlarmReceiver extends BroadcastReceiver {
         alarmManager.setExactAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,calendar.getTimeInMillis(),pendingIntent
                 );
-        Log.i("data", select_id + ", " + (calendar.get(Calendar.MONTH)+1)+"월 "+  calendar.get(Calendar.DATE)+"일 "+calendar
-                .get(Calendar.HOUR_OF_DAY)+"시 "+calendar.get(Calendar.MINUTE)+"분 알람 예약됨.");
 
     }
 
     private void Notification(PendingIntent pendingIntent, Context context) {
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        int minute = calendar.get(Calendar.MINUTE);
+        int totalMinutes = hour * 60 + minute;
+
+        if (select_id == 0 && totalMinutes > 7 * 60 + 30 ||
+                select_id == 1 && totalMinutes > 11 * 60 + 40 ||
+                select_id == 2 && totalMinutes > 17 * 60 + 30) {
+            return;
+        }
         int select_room = pref.getInt("select_restaurant", 0);
         int select_campus = pref.getInt("select_campus", 0);
         int select_food_room = pref.getInt("select_dorm_restaurant", 0);
@@ -155,8 +161,14 @@ public class AlarmReceiver extends BroadcastReceiver {
             } else {
                 List<String> list = Arrays.asList(elements.select("td[data-mqtitle='date']").text().replace(" ", "").split("일"));
                 select = list.indexOf(month + "월" + day);
-                Element e = elements.get(select);
-                menu = e.select(food_time_type[select_id]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
+                try{
+
+                    Element e = elements.get(select);
+                    menu = e.select(food_time_type[select_id]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
+                }catch (ArrayIndexOutOfBoundsException e){
+                    menu = "";
+                    e.printStackTrace();
+                }
             }
             String rest_name = pref.getString("alarm_food_name", "천안");
             String rest_type_name = pref.getString("alarm_food_type_name", "기숙사 식당");
