@@ -57,6 +57,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     long now = System.currentTimeMillis();
 
     Date date = new Date(now);
+
     @SuppressLint("SimpleDateFormat")
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy:MM:dd:HH:mm");
 

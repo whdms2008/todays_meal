@@ -76,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
                     "https://dormi.kongju.ac.kr/HOME/sub.php?code=041302"}}; // 신관 생활관 식당 [ 드림 ]
 
     String[] today_menus = {"", "", ""}; // 조식메뉴, 중식, 석식
+    
     String[] student_name = {"천안", "예산", "신관"};
 
     String[][] restaurants = {{},
@@ -91,7 +92,6 @@ public class MainActivity extends AppCompatActivity {
             }
     };
 
-    // 천안, 예산, 은행사/비전, 드림
     String[] food_time_type = {"td[data-mqtitle='breakfast']", "td[data-mqtitle='lunch']", "td[data-mqtitle='dinner']"};
     String[] dinner_type_name = {"기숙사 식당", "학생식당", "교직원식당"};
     String[] food_time = {"07:30 ~ 09:00", "11:40 ~ 13:30", "17:30 ~ 19:00"};
@@ -262,16 +262,9 @@ public class MainActivity extends AppCompatActivity {
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
-                    // Permission is granted. Continue the action or workflow in your
-                    // app.
                     Log.i("data", "허용!!");
                 } else {
-                    Log.i("data", "허용안함!!");
-                    // Explain to the user that the feature is unavailable because the
-                    // feature requires a permission that the user has denied. At the
-                    // same time, respect the user's decision. Don't link to system
-                    // settings in an effort to convince the user to change their
-                    // decision.
+                    Log.i("data", "거절!!");
                 }
             });
 
