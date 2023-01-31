@@ -239,7 +239,6 @@ public class MainActivity extends AppCompatActivity {
 
         } else if (nums == 2) {
             findViewById(R.id.moon).performClick();
-
         }
     }
 
@@ -552,9 +551,9 @@ public class MainActivity extends AppCompatActivity {
                 document = Jsoup.connect(select_room != 0 ? restaurants[select_room][select_campus] : campus[select_campus][select_food_room]).get();
                 elements = document.select("tbody tr");
                 if (select_room != 0) {
-                    try{
+                    try {
                         select = document.select("thead tr th").indexOf(document.select("th.on").first());
-                    }catch (ArrayIndexOutOfBoundsException e){
+                    } catch (ArrayIndexOutOfBoundsException e) {
                         select = 7;
                     }
                     Elements elements2 = document.select("tbody");
@@ -564,7 +563,7 @@ public class MainActivity extends AppCompatActivity {
                                 try {
                                     today_menus[1] = e.child(select).text();
                                     break;
-                                }catch (ArrayIndexOutOfBoundsException er){
+                                } catch (ArrayIndexOutOfBoundsException er) {
                                     today_menus[1] = "";
                                     break;
                                 }
@@ -572,7 +571,7 @@ public class MainActivity extends AppCompatActivity {
                                 try {
                                     today_menus[2] = e.child(select).text();
                                     break;
-                                }catch (ArrayIndexOutOfBoundsException er){
+                                } catch (ArrayIndexOutOfBoundsException er) {
                                     today_menus[2] = "";
                                     break;
                                 }
