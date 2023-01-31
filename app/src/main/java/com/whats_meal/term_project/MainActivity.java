@@ -552,16 +552,31 @@ public class MainActivity extends AppCompatActivity {
                 document = Jsoup.connect(select_room != 0 ? restaurants[select_room][select_campus] : campus[select_campus][select_food_room]).get();
                 elements = document.select("tbody tr");
                 if (select_room != 0) {
-                    select = document.select("thead tr th").indexOf(document.select("th.on").first());
+                    try{
+                        select = document.select("thead tr th").indexOf(document.select("th.on").first());
+
+                    }catch (ArrayIndexOutOfBoundsException e){
+                        select = 7;
+                    }
                     Elements elements2 = document.select("tbody");
                     for (Element e : elements2.select("tr")) {
                         switch (e.select("th").text()) {
                             case "중식":
-                                today_menus[1] = e.child(select).text();
-                                break;
+                                try {
+                                    today_menus[1] = e.child(select).text();
+                                    break;
+                                }catch (ArrayIndexOutOfBoundsException er){
+                                    today_menus[1] = "";
+                                    break;
+                                }
                             case "석식":
-                                today_menus[2] = e.child(select).text();
-                                break;
+                                try {
+                                    today_menus[2] = e.child(select).text();
+                                    break;
+                                }catch (ArrayIndexOutOfBoundsException er){
+                                    today_menus[2] = "";
+                                    break;
+                                }
                         }
                     }
                     setStringArrayPref(today_menus);
