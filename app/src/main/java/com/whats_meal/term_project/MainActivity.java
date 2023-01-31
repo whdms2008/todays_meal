@@ -554,7 +554,6 @@ public class MainActivity extends AppCompatActivity {
                 if (select_room != 0) {
                     try{
                         select = document.select("thead tr th").indexOf(document.select("th.on").first());
-
                     }catch (ArrayIndexOutOfBoundsException e){
                         select = 7;
                     }
