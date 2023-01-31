@@ -140,8 +140,12 @@ public class AlarmReceiver extends BroadcastReceiver {
 
             elements = document.select("tbody").select("tr"); //필요한 녀석만 꼬집어서 지정
             if (select_room != 0) {
-                select = document.select("thead tr th").indexOf(document.select("th.on").first());
+                try{
+                    select = document.select("thead tr th").indexOf(document.select("th.on").first());
 
+                }catch (ArrayIndexOutOfBoundsException e){
+                    select = 7;
+                }
                 menu = "";
                 String[] meal_times = {"조식", "중식", "석식"};
                 for (int e_cnt = 0; e_cnt < elements.size(); e_cnt++) {
