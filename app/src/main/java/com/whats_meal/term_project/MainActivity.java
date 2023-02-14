@@ -600,7 +600,7 @@ public class MainActivity extends AppCompatActivity {
                 food_menu.removeAllViews();
                 food_time_view.setText(food_time[numbers][select_campus][select_room]);
                 if (!today_menus[numbers].isEmpty() && !Objects.equals(today_menus[numbers], "등록된 식단내용이(가) 없습니다.")) {
-                    List<String> menus = Arrays.asList(today_menus[numbers].split(" "));
+                    List<String> menus = Arrays.asList(today_menus[numbers].replace(",","").split(" "));
                     menus.forEach(menu -> food_menu.addView(makeMenu(menu)));
                 } else {
                     food_menu.addView(makeMenu("밥 없어요~!!"));
