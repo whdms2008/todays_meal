@@ -240,7 +240,9 @@ public class MainActivity extends AppCompatActivity {
         } else if (nums == 2) {
             findViewById(R.id.moon).performClick();
         }
+
     }
+
 
     private void sendMessageToHandler(String nums) {
         bundle.putString("numbers", nums);
@@ -545,6 +547,11 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("SetTextI18n")
     private void load_food(int numbers) {
         try {
+            pref = this.getSharedPreferences("pref", Activity.MODE_PRIVATE);
+            if (pref.getBoolean("notify", false)) {
+                cancelAlarm();
+                setAlarm();
+            }
             Document document;
             Elements elements;
             if ((Objects.equals(today_menus[0], "") && Objects.equals(today_menus[1], "")) && Objects.equals(today_menus[2], "")) {
@@ -600,7 +607,7 @@ public class MainActivity extends AppCompatActivity {
                 food_menu.removeAllViews();
                 food_time_view.setText(food_time[numbers][select_campus][select_room]);
                 if (!today_menus[numbers].isEmpty() && !Objects.equals(today_menus[numbers], "등록된 식단내용이(가) 없습니다.")) {
-                    List<String> menus = Arrays.asList(today_menus[numbers].replace(",","").split(" "));
+                    List<String> menus = Arrays.asList(today_menus[numbers].replace(",", "").split(" "));
                     menus.forEach(menu -> food_menu.addView(makeMenu(menu)));
                 } else {
                     food_menu.addView(makeMenu("밥 없어요~!!"));
