@@ -164,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
         cam_name = findViewById(R.id.cam_name);
         diner_name = findViewById(R.id.diner_type);
         today_date = findViewById(R.id.date);
-        food_type = findViewById(R.id.food_type);
+//        food_type = findViewById(R.id.food_type);
         food_time_view = findViewById(R.id.food_time);
         food_menu = findViewById(R.id.food_menu);
         food_type_icon = findViewById(R.id.food_type_icon);
@@ -352,7 +352,7 @@ public class MainActivity extends AppCompatActivity {
                     case 0:
                     case 1:
                     case 2:
-                        food_type.setText(food_time_name[nums]);
+//                        food_type.setText(food_time_name[nums]);
                         editor.putInt("select_time", nums);
                         editor.apply();
                         load_food(nums);
