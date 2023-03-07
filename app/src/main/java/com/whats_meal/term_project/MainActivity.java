@@ -10,6 +10,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -42,6 +43,15 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.play.core.appupdate.AppUpdateInfo;
+import com.google.android.play.core.appupdate.AppUpdateManager;
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory;
+import com.google.android.play.core.install.InstallStateUpdatedListener;
+import com.google.android.play.core.install.model.AppUpdateType;
+import com.google.android.play.core.install.model.InstallStatus;
+import com.google.android.play.core.install.model.UpdateAvailability;
+import com.google.android.play.core.tasks.Task;
 
 import org.json.JSONArray;
 import org.jsoup.Jsoup;
@@ -143,12 +153,47 @@ public class MainActivity extends AppCompatActivity {
 
     boolean notify = false;
 
+    private static final int REQUEST_CODE_UPDATE = 1006;
+
+    private AppUpdateManager appUpdateManager;
+    private InstallStateUpdatedListener installStateUpdatedListener;
+
     @SuppressLint({"UseCompatLoadingForDrawables", "SetTextI18n", "NonConstantResourceId"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+
+        appUpdateManager = AppUpdateManagerFactory.create(this);
+
+        // 업데이트 상태를 확인하는 리스너 등록
+        installStateUpdatedListener = installState -> {
+            if (installState.installStatus() == InstallStatus.DOWNLOADED) {
+                // 다운로드 완료 시 업데이트 설치
+                popupSnackbarForCompleteUpdate();
+            }
+        };
+
+        // 업데이트 정보를 확인하고 업데이트 다이얼로그 표시
+        Task<AppUpdateInfo> appUpdateInfoTask = appUpdateManager.getAppUpdateInfo();
+        appUpdateInfoTask.addOnSuccessListener(appUpdateInfo -> {
+            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+                    && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
+                try {
+                    appUpdateManager.startUpdateFlowForResult(
+                            appUpdateInfo,
+                            AppUpdateType.IMMEDIATE,
+                            this,
+                            REQUEST_CODE_UPDATE);
+                } catch (IntentSender.SendIntentException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+
+
         pref = getSharedPreferences("pref", Activity.MODE_PRIVATE);
         editor = pref.edit();
 
@@ -164,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
         cam_name = findViewById(R.id.cam_name);
         diner_name = findViewById(R.id.diner_type);
         today_date = findViewById(R.id.date);
-//        food_type = findViewById(R.id.food_type);
+        food_type = findViewById(R.id.food_type);
         food_time_view = findViewById(R.id.food_time);
         food_menu = findViewById(R.id.food_menu);
         food_type_icon = findViewById(R.id.food_type_icon);
@@ -242,7 +287,34 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+    private void popupSnackbarForCompleteUpdate() {
+        Snackbar.make(findViewById(android.R.id.content), "업데이트 다운로드 완료",
+                Snackbar.LENGTH_INDEFINITE).setAction("재시작", view -> appUpdateManager.completeUpdate()).show();
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        appUpdateManager.registerListener(installStateUpdatedListener);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        appUpdateManager.unregisterListener(installStateUpdatedListener);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_UPDATE) {
+            if (resultCode != RESULT_OK) {
+                // 업데이트가 취소되거나 실패한 경우
+                Snackbar.make(findViewById(android.R.id.content), "업데이트 취소 또는 실패",
+                        Snackbar.LENGTH_LONG).show();
+            }
+        }
+    }
 
     private void sendMessageToHandler(String nums) {
         bundle.putString("numbers", nums);
@@ -354,7 +426,7 @@ public class MainActivity extends AppCompatActivity {
                     case 0:
                     case 1:
                     case 2:
-//                        food_type.setText(food_time_name[nums]);
+                        food_type.setText(food_time_name[nums]);
                         editor.putInt("select_time", nums);
                         editor.apply();
                         load_food(nums);
