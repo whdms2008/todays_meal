@@ -54,6 +54,8 @@ import com.google.android.play.core.install.model.AppUpdateType;
 import com.google.android.play.core.install.model.InstallStatus;
 import com.google.android.play.core.install.model.UpdateAvailability;
 import com.google.android.play.core.tasks.Task;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
 import org.jsoup.Jsoup;
@@ -69,6 +71,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity implements
         GestureDetector.OnGestureListener,
@@ -95,8 +99,8 @@ public class MainActivity extends AppCompatActivity implements
     String[][] week_menus = {
             {"", "", "", "", "", "", ""},  // 조식
             {"", "", "", "", "", "", ""},  // 중식
-            {"", "", "", "", "", "", ""}}; // 석식
-
+            {"", "", "", "", "", "", ""}, // 석식
+            {"", "", "", "", "", "", ""}}; // 날짜
 
     String[] student_name = {"천안", "예산", "신관"};
 
@@ -172,7 +176,7 @@ public class MainActivity extends AppCompatActivity implements
 
     // 저장 방식을 변경해보자, 주차로 변경된 만큼 에초에 처음 불러올때 해당 주에 대한 모든 정보를 가져와서 array 방식으로 indexing 하여서 확인하는 방법으로. 기존의 가져온 하루 정보만 저장이 아니라 ㅇㅋ?
 
-    @SuppressLint({"UseCompatLoadingForDrawables", "SetTextI18n", "NonConstantResourceId", "ClickableViewAccessibility"})
+    @SuppressLint({"UseCompatLoadingForDrawables", "SetTextI18n", "NonConstantResourceId", "ClickableViewAccessibility", "DefaultLocale"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -262,7 +266,7 @@ public class MainActivity extends AppCompatActivity implements
         });
 
         bottomNavigationView = findViewById(R.id.menus);
-        today_date.setText(month + "월 " + day + "일");
+        today_date.setText(month + "월 " + String.format("%02d", day) + "일");
 
         diner_name.setText(dinner_type_name[select_room]);
         if (select_room == 0) {
@@ -308,13 +312,23 @@ public class MainActivity extends AppCompatActivity implements
 
                 if (Math.abs(deltaX) > Math.abs(deltaY)) {
                     if (deltaX > 0) {
-                        // Right swipe
-                        day -= 1;
-                        load_food(nums);
+                        try{
+                            select--;
+                            load_food(nums);
+                        }catch (ArrayIndexOutOfBoundsException ab){
+                            select++;
+                            load_food(nums);
+                            Toast.makeText(getApplicationContext(),"마지막 페이지 입니다.",Toast.LENGTH_SHORT).show();
+                        }
                     } else {
-                        // Left swipe
-                        day += 1;
-                        load_food(nums);
+                        try{
+                            select++;
+                            load_food(nums);
+                        }catch (ArrayIndexOutOfBoundsException ab){
+                            select--;
+                            load_food(nums);
+                            Toast.makeText(getApplicationContext(),"마지막 페이지 입니다.",Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }
                 return true;
@@ -333,15 +347,6 @@ public class MainActivity extends AppCompatActivity implements
             return true;
         }
         return super.onTouchEvent(event);
-    }
-
-    private void onSwipeRight() {
-        findViewById(R.id.moon).performClick();
-    }
-
-    private void onSwipeLeft() {
-
-        findViewById(R.id.moon).performClick();
     }
 
     private void popupSnackbarForCompleteUpdate() {
@@ -649,6 +654,11 @@ public class MainActivity extends AppCompatActivity implements
                     today_menus[0] = "";
                     today_menus[1] = "";
                     today_menus[2] = "";
+                    week_menus = new String[][]{
+                            {"", "", "", "", "", "", ""},
+                            {"", "", "", "", "", "", ""},
+                            {"", "", "", "", "", "", ""},
+                            {"", "", "", "", "", "", ""}};
 
                     int time_all = (f_hour * 60) + f_minute;
                     if (19 * 60 - time_all >= 0) {
@@ -682,9 +692,11 @@ public class MainActivity extends AppCompatActivity implements
                 cancelAlarm();
                 setAlarm();
             }
+            System.out.println("numbs" + numbers);
+            System.out.println("select: "  + select);
             Document document;
             Elements elements;
-            if ((Objects.equals(today_menus[0], "") && Objects.equals(today_menus[1], "")) && Objects.equals(today_menus[2], "")) {
+            if ((Objects.equals(week_menus[0][0], "") && Objects.equals(week_menus[1][0], "")) && Objects.equals(week_menus[2][0], "")) {
                 document = Jsoup.connect(select_room != 0 ? restaurants[select_room][select_campus] : campus[select_campus][select_food_room]).get();
                 elements = document.select("tbody tr");
                 if (select_room != 0) { // 기숙사가 아닐때 식단
@@ -693,6 +705,19 @@ public class MainActivity extends AppCompatActivity implements
                     } catch (ArrayIndexOutOfBoundsException e) {
                         select = 6;
                     }
+                    String regex = "(\\d{2}\\.\\d{2} )";
+                    Pattern pattern = Pattern.compile(regex);
+                    Elements week_menu_times = document.select("thead tr th");
+                    Matcher matcher;
+                    for (int i=1;i<week_menu_times.size();i++){
+                        matcher = pattern.matcher(week_menu_times.get(i).text());
+                        if (matcher.find()) {
+                            String extracted = matcher.group(1);
+                            assert extracted != null;
+                            week_menus[3][i-1] = extracted.replace(" ", "일").replace(".","월 ");
+                        }
+                    }
+                    System.out.println(Arrays.toString(week_menus[3]));
                     for (Element e : elements){ // 주간 식단 저장
                         switch (e.children().get(0).text()){
                             case "조식":
@@ -713,44 +738,27 @@ public class MainActivity extends AppCompatActivity implements
 
                         }
                     }
-                    System.out.println(week_menus[0][select]);
-                    System.out.println(week_menus[1][select]);
-                    System.out.println(week_menus[2][select]);
-                    System.out.println("오늘 index : " + select);
-                    try {
-                        today_menus[1] = week_menus[1][select];
-                    } catch (ArrayIndexOutOfBoundsException er) {
-                        today_menus[1] = "";
-                    }
-                    try {
-                        today_menus[2] = week_menus[2][select];
-                    } catch (ArrayIndexOutOfBoundsException er) {
-                        today_menus[2] = "";
-                    }
-                    setStringArrayPref(today_menus);
+                    saveWeekMenus(getApplicationContext(), week_menus);
                 } else {
+                    elements = document.select("tbody tr");
+                    for (int i=0;i<elements.size();i++){
+                        week_menus[0][i] = elements.get(i).select(food_time_type[0]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
+                        week_menus[1][i] = elements.get(i).select(food_time_type[1]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
+                        week_menus[2][i] = elements.get(i).select(food_time_type[2]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
+                    }
                     List<String> list = Arrays.asList(elements.select("td[data-mqtitle='date']").text().replace(" ", "").split("일"));
                     select = list.indexOf(month + "월" + String.format("%02d", day));
-                    try {
-
-                        Element e = elements.get(select);
-
-                        for (int cnt = 0; cnt < today_menus.length; cnt++) {
-                            today_menus[cnt] = e.select(food_time_type[cnt]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
-                        }
-                    } catch (ArrayIndexOutOfBoundsException e) {
-                        Arrays.fill(today_menus, "");
-                        e.printStackTrace();
-                    }
-                    setStringArrayPref(today_menus);
+                    System.out.println("선택 select : " + select);
+                    saveWeekMenus(getApplicationContext(), week_menus);
                 }
             }
             runOnUiThread(() -> {
                 food_type_icon.setImageDrawable(ResourcesCompat.getDrawable(getResources(), food_icon[numbers], null));
                 food_menu.removeAllViews();
                 food_time_view.setText(food_time[numbers][select_campus][select_room]);
-                if (!today_menus[numbers].isEmpty() && !Objects.equals(today_menus[numbers], "등록된 식단내용이(가) 없습니다.")) {
-                    List<String> menus = Arrays.asList(today_menus[numbers].replace(",", "").split(" "));
+                today_date.setText(week_menus[3][select]);
+                if (!week_menus[numbers][select].isEmpty() && !Objects.equals(week_menus[numbers][select], "등록된 식단내용이(가) 없습니다.")) {
+                    List<String> menus = Arrays.asList(week_menus[numbers][select].replace(",", "").split(" "));
                     menus.forEach(menu -> food_menu.addView(makeMenu(menu)));
                 } else {
                     food_menu.addView(makeMenu("밥 없어요~!!"));
@@ -797,14 +805,28 @@ public class MainActivity extends AppCompatActivity implements
         return rdb;
     }
 
-    private void setStringArrayPref(String[] values) {
-        String jsonString;
-        if (values.length == 0) {
-            jsonString = null;
-        } else {
-            jsonString = new JSONArray(Arrays.asList(values)).toString();
+    public static void saveWeekMenus(Context context, String[][] weekMenus) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences("pref", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        Gson gson = new Gson();
+        String json = gson.toJson(weekMenus);
+
+        editor.putString("week_menus", json);
+        editor.apply();
+    }
+
+    public static String[][] getWeekMenus(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences("pref", Context.MODE_PRIVATE);
+        String json = sharedPreferences.getString("week_menus", null);
+
+        if (json != null) {
+            Gson gson = new Gson();
+            TypeToken<String[][]> token = new TypeToken<String[][]>() {};
+            return gson.fromJson(json, token.getType());
         }
-        editor.putString("food_menus", jsonString).apply();
+
+        return null;
     }
 
     @Override
