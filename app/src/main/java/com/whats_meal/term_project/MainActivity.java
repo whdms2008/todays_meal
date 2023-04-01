@@ -695,7 +695,7 @@ public class MainActivity extends AppCompatActivity implements
             System.out.println("numbs" + numbers);
             System.out.println("select: "  + select);
             Document document;
-            Elements elements;
+            Elements elements; // 일요일이 되면 기숙사를 제외한 일반 식단표는 그 다음 월요일 부터 다시 페이지를 띄우기 때문에 불러오는데 실패하여 오류가 발생.
             if ((Objects.equals(week_menus[0][0], "") && Objects.equals(week_menus[1][0], "")) && Objects.equals(week_menus[2][0], "")) {
                 document = Jsoup.connect(select_room != 0 ? restaurants[select_room][select_campus] : campus[select_campus][select_food_room]).get();
                 elements = document.select("tbody tr");
