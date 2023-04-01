@@ -76,13 +76,14 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/view_page"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="0.75"
         android:background="@color/white"
         android:orientation="vertical"
-        android:paddingTop="40dp"
-        android:paddingBottom="130dp">
+        android:paddingTop="50dp"
+        android:paddingBottom="20dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -98,10 +99,10 @@
                 android:id="@+id/food_type_icon"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.15"
+                android:layout_weight="0.14"
                 android:layout_gravity="center"
-                android:layout_marginStart="4dp"
-                android:padding="10dp"
+                android:layout_marginStart="10dp"
+                android:padding="8dp"
                 android:src="@drawable/sun_morning" />
 
             <TextView
@@ -114,27 +115,28 @@
                 android:autoSizeTextType="uniform"
                 android:textAlignment="center"
                 android:gravity="center"
-                android:autoSizeMinTextSize="20sp"
+                android:autoSizeMinTextSize="22sp"
                 android:autoSizeMaxTextSize="24sp"
-                android:textSize="19sp"
+                android:textSize="22sp"
                 android:textColor="@color/black" />
 
             <TextView
-                android:includeFontPadding="false"
                 android:id="@+id/food_time"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="0.35"
+                android:layout_weight="0.4"
+                android:autoSizeMaxTextSize="15dp"
+                android:autoSizeMinTextSize="14sp"
                 android:fontFamily="@font/scd5"
-                android:textAlignment="center"
                 android:gravity="center"
+                android:includeFontPadding="false"
                 android:text="11:40 ~ 13:30"
-                android:textSize="19sp"
-                android:textColor="@color/black"
+                android:textAlignment="center"
 
-                android:autoSizeMinTextSize="15sp"
-                android:autoSizeMaxTextSize="25dp"
+                android:textColor="@color/black"
+                android:textSize="19sp"
                 tools:ignore="RtlSymmetry" />
+
             <TextView
                 android:id="@+id/cal"
                 android:layout_width="0dp"
@@ -157,7 +159,7 @@
             android:layout_height="0dp"
             android:layout_marginLeft="14dp"
             android:layout_marginRight="14dp"
-            android:layout_marginBottom="20dp"
+            android:layout_marginBottom="50dp"
             android:layout_weight="1"
             android:elevation="3dp"
             android:background="@drawable/border_radius_bottom"
@@ -166,7 +168,9 @@
             >
 
         </LinearLayout>
+
     </LinearLayout>
+
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/menus"

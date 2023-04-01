@@ -23,7 +23,9 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -68,7 +70,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements
+        GestureDetector.OnGestureListener,
+        GestureDetector.OnDoubleTapListener {
 
     private Calendar calendar;
     private AlarmManager alarmManager;
@@ -87,6 +91,12 @@ public class MainActivity extends AppCompatActivity {
                     "https://dormi.kongju.ac.kr/HOME/sub.php?code=041302"}}; // 신관 생활관 식당 [ 드림 ]
 
     String[] today_menus = {"", "", ""}; // 조식메뉴, 중식, 석식
+
+    String[][] week_menus = {
+            {"", "", "", "", "", "", ""},  // 조식
+            {"", "", "", "", "", "", ""},  // 중식
+            {"", "", "", "", "", "", ""}}; // 석식
+
 
     String[] student_name = {"천안", "예산", "신관"};
 
@@ -131,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
 
     String getDate = sdf.format(date);
     String month = getDate.split(":")[1];
-    String day = getDate.split(":")[2];
+    int day = Integer.parseInt(getDate.split(":")[2]);
     String hour = getDate.split(":")[3];
     String minute = getDate.split(":")[4];
     String alarm_food_name = "";
@@ -158,13 +168,18 @@ public class MainActivity extends AppCompatActivity {
     private AppUpdateManager appUpdateManager;
     private InstallStateUpdatedListener installStateUpdatedListener;
 
-    @SuppressLint({"UseCompatLoadingForDrawables", "SetTextI18n", "NonConstantResourceId"})
+    private GestureDetector gestureDetector;
+
+    // 저장 방식을 변경해보자, 주차로 변경된 만큼 에초에 처음 불러올때 해당 주에 대한 모든 정보를 가져와서 array 방식으로 indexing 하여서 확인하는 방법으로. 기존의 가져온 하루 정보만 저장이 아니라 ㅇㅋ?
+
+    @SuppressLint({"UseCompatLoadingForDrawables", "SetTextI18n", "NonConstantResourceId", "ClickableViewAccessibility"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
 
+        LinearLayout view_page = findViewById(R.id.view_page);
         appUpdateManager = AppUpdateManagerFactory.create(this);
 
         // 업데이트 상태를 확인하는 리스너 등록
@@ -191,7 +206,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
 
 
         pref = getSharedPreferences("pref", Activity.MODE_PRIVATE);
@@ -286,7 +300,50 @@ public class MainActivity extends AppCompatActivity {
             findViewById(R.id.moon).performClick();
         }
 
+        gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                float deltaX = e2.getX() - e1.getX();
+                float deltaY = e2.getY() - e1.getY();
+
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    if (deltaX > 0) {
+                        // Right swipe
+                        day -= 1;
+                        load_food(nums);
+                    } else {
+                        // Left swipe
+                        day += 1;
+                        load_food(nums);
+                    }
+                }
+                return true;
+            }
+        });
+        view_page.setOnTouchListener((view, motionEvent) -> {
+            System.out.println(motionEvent);
+            return gestureDetector.onTouchEvent(motionEvent);
+        });
+
     }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (this.gestureDetector.onTouchEvent(event)) {
+            return true;
+        }
+        return super.onTouchEvent(event);
+    }
+
+    private void onSwipeRight() {
+        findViewById(R.id.moon).performClick();
+    }
+
+    private void onSwipeLeft() {
+
+        findViewById(R.id.moon).performClick();
+    }
+
     private void popupSnackbarForCompleteUpdate() {
         Snackbar.make(findViewById(android.R.id.content), "업데이트 다운로드 완료",
                 Snackbar.LENGTH_INDEFINITE).setAction("재시작", view -> appUpdateManager.completeUpdate()).show();
@@ -372,6 +429,7 @@ public class MainActivity extends AppCompatActivity {
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
         createNotificationChannel();
+
         int[][] time = {{}, {}, {}};
         for (int i = 0; i < 3; i++) {
             try {
@@ -616,7 +674,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    @SuppressLint("SetTextI18n")
+    @SuppressLint({"SetTextI18n", "DefaultLocale"})
     private void load_food(int numbers) {
         try {
             pref = this.getSharedPreferences("pref", Activity.MODE_PRIVATE);
@@ -629,37 +687,50 @@ public class MainActivity extends AppCompatActivity {
             if ((Objects.equals(today_menus[0], "") && Objects.equals(today_menus[1], "")) && Objects.equals(today_menus[2], "")) {
                 document = Jsoup.connect(select_room != 0 ? restaurants[select_room][select_campus] : campus[select_campus][select_food_room]).get();
                 elements = document.select("tbody tr");
-                if (select_room != 0) {
+                if (select_room != 0) { // 기숙사가 아닐때 식단
                     try {
-                        select = document.select("thead tr th").indexOf(document.select("th.on").first());
+                        select = document.select("thead tr th").indexOf(document.select("th.on").first())-1;
                     } catch (ArrayIndexOutOfBoundsException e) {
-                        select = 7;
+                        select = 6;
                     }
-                    Elements elements2 = document.select("tbody");
-                    for (Element e : elements2.select("tr")) {
-                        switch (e.select("th").text()) {
+                    for (Element e : elements){ // 주간 식단 저장
+                        switch (e.children().get(0).text()){
+                            case "조식":
+                                for( int i=0;i< e.children().size()-1;i++){
+                                    week_menus[0][i] = e.children().get(i+1).text();
+                                }
+                                break;
                             case "중식":
-                                try {
-                                    today_menus[1] = e.child(select).text();
-                                    break;
-                                } catch (ArrayIndexOutOfBoundsException er) {
-                                    today_menus[1] = "";
-                                    break;
+                                for( int i=0;i< e.children().size()-1;i++){
+                                    week_menus[1][i] = e.children().get(i+1).text();
                                 }
+                                break;
                             case "석식":
-                                try {
-                                    today_menus[2] = e.child(select).text();
-                                    break;
-                                } catch (ArrayIndexOutOfBoundsException er) {
-                                    today_menus[2] = "";
-                                    break;
+                                for( int i=0;i< e.children().size()-1;i++){
+                                    week_menus[2][i] = e.children().get(i+1).text();
                                 }
+                                break;
+
                         }
+                    }
+                    System.out.println(week_menus[0][select]);
+                    System.out.println(week_menus[1][select]);
+                    System.out.println(week_menus[2][select]);
+                    System.out.println("오늘 index : " + select);
+                    try {
+                        today_menus[1] = week_menus[1][select];
+                    } catch (ArrayIndexOutOfBoundsException er) {
+                        today_menus[1] = "";
+                    }
+                    try {
+                        today_menus[2] = week_menus[2][select];
+                    } catch (ArrayIndexOutOfBoundsException er) {
+                        today_menus[2] = "";
                     }
                     setStringArrayPref(today_menus);
                 } else {
                     List<String> list = Arrays.asList(elements.select("td[data-mqtitle='date']").text().replace(" ", "").split("일"));
-                    select = list.indexOf(month + "월" + day);
+                    select = list.indexOf(month + "월" + String.format("%02d", day));
                     try {
 
                         Element e = elements.get(select);
@@ -734,5 +805,50 @@ public class MainActivity extends AppCompatActivity {
             jsonString = new JSONArray(Arrays.asList(values)).toString();
         }
         editor.putString("food_menus", jsonString).apply();
+    }
+
+    @Override
+    public boolean onSingleTapConfirmed(@NonNull MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public boolean onDoubleTap(@NonNull MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public boolean onDoubleTapEvent(@NonNull MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public boolean onDown(@NonNull MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public void onShowPress(@NonNull MotionEvent e) {
+
+    }
+
+    @Override
+    public boolean onSingleTapUp(@NonNull MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public boolean onScroll(@NonNull MotionEvent e1, @NonNull MotionEvent e2, float distanceX, float distanceY) {
+        return false;
+    }
+
+    @Override
+    public void onLongPress(@NonNull MotionEvent e) {
+
+    }
+
+    @Override
+    public boolean onFling(@NonNull MotionEvent e1, @NonNull MotionEvent e2, float velocityX, float velocityY) {
+        return false;
     }
 }
