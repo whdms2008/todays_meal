@@ -57,7 +57,6 @@ import com.google.android.play.core.tasks.Task;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import org.json.JSONArray;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -254,7 +253,7 @@ public class MainActivity extends AppCompatActivity implements
 
         notify_icon = findViewById(R.id.notification);
         notify_icon.setImageDrawable(
-                notify ? getDrawable(R.drawable.true_notification) : getDrawable(R.drawable.false_notfication)
+                notify ? getDrawable(R.drawable.baseline_notifications_black_48) : getDrawable(R.drawable.baseline_notifications_off_black_48)
         );
         notify_icon.setOnClickListener(view -> {
             if (notify) {
@@ -338,6 +337,7 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (this.gestureDetector.onTouchEvent(event)) {
@@ -387,7 +387,7 @@ public class MainActivity extends AppCompatActivity implements
         notify = false;
         editor.putBoolean("notify", false);
         editor.apply();
-        notify_icon.setImageDrawable(getDrawable(R.drawable.false_notfication));
+        notify_icon.setImageDrawable(getDrawable(R.drawable.baseline_notifications_off_black_48));
 
         Intent intent = new Intent(this, AlarmReceiver.class);
 
@@ -424,7 +424,7 @@ public class MainActivity extends AppCompatActivity implements
         editor.putBoolean("notify", true);
         editor.apply();
 
-        notify_icon.setImageDrawable(getDrawable(R.drawable.true_notification));
+        notify_icon.setImageDrawable(getDrawable(R.drawable.baseline_notifications_black_48));
         calendar = Calendar.getInstance();
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);

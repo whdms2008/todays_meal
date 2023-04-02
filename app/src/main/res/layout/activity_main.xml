@@ -23,7 +23,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_gravity="center_vertical"
-            >
+            tools:ignore="NestedWeights">
             <TextView
                 android:id="@+id/cam_name"
                 android:layout_width="match_parent"
@@ -72,7 +72,7 @@
             android:layout_weight="1"
             android:layout_width="0dp"
             android:layout_height="36dp"
-            android:src="@drawable/false_notfication"/>
+            android:src="@drawable/baseline_notifications_black_48"/>
     </LinearLayout>
 
     <LinearLayout
