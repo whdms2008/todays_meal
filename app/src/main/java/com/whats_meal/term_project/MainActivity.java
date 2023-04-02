@@ -174,7 +174,6 @@ public class MainActivity extends AppCompatActivity implements
 
     private GestureDetector gestureDetector;
 
-    // 저장 방식을 변경해보자, 주차로 변경된 만큼 에초에 처음 불러올때 해당 주에 대한 모든 정보를 가져와서 array 방식으로 indexing 하여서 확인하는 방법으로. 기존의 가져온 하루 정보만 저장이 아니라 ㅇㅋ?
 
     @SuppressLint({"UseCompatLoadingForDrawables", "SetTextI18n", "NonConstantResourceId", "ClickableViewAccessibility", "DefaultLocale"})
     @Override
@@ -312,23 +311,23 @@ public class MainActivity extends AppCompatActivity implements
                 float deltaY = e2.getY() - e1.getY();
 
                 if (nums <= 2 && Math.abs(deltaX) > Math.abs(deltaY)) {
-                        if (deltaX > 0) {
-                            try{
-                                select--;
-                                new Thread(() -> load_food(nums)).start();
-                            }catch (ArrayIndexOutOfBoundsException ab){
-                                select++;
-                                new Thread(() -> load_food(nums)).start();
-                            }
-                        } else {
-                            try{
-                                select++;
-                                new Thread(() -> load_food(nums)).start();
-                            }catch (ArrayIndexOutOfBoundsException ab){
-                                select--;
-                                new Thread(() -> load_food(nums)).start();
-                            }
+                    if (deltaX > 0) {
+                        try {
+                            select--;
+                            new Thread(() -> load_food(nums)).start();
+                        } catch (ArrayIndexOutOfBoundsException ab) {
+                            select++;
+                            new Thread(() -> load_food(nums)).start();
                         }
+                    } else {
+                        try {
+                            select++;
+                            new Thread(() -> load_food(nums)).start();
+                        } catch (ArrayIndexOutOfBoundsException ab) {
+                            select--;
+                            new Thread(() -> load_food(nums)).start();
+                        }
+                    }
                 }
                 return true;
             }
@@ -682,6 +681,118 @@ public class MainActivity extends AppCompatActivity implements
         });
     }
 
+//    @SuppressLint({"SetTextI18n", "DefaultLocale"})
+//    private void load_food(int numbers) {
+//        try {
+//            pref = this.getSharedPreferences("pref", Activity.MODE_PRIVATE);
+//            if (pref.getBoolean("notify", false)) {
+//                cancelAlarm();
+//                setAlarm();
+//            }
+//            Document document;
+//            Elements elements; // 일요일이 되면 기숙사를 제외한 일반 식단표는 그 다음 월요일 부터 다시 페이지를 띄우기 때문에 불러오는데 실패하여 오류가 발생.
+//            if ((Objects.equals(week_menus[0][0], "") && Objects.equals(week_menus[1][0], "")) && Objects.equals(week_menus[2][0], "")) {
+//                document = Jsoup.connect(select_room != 0 ? restaurants[select_room][select_campus] : campus[select_campus][select_food_room]).get();
+//                elements = document.select("tbody tr");
+//                if (select_room != 0 || select_campus == 0 && !elements.select("td[class='noedge-l first']").isEmpty() && elements.select("td[data-mqtitle='lunch']").text().isEmpty()) { // 기숙사가 아닐때 식단
+//                    try {
+//                        if (select_campus == 0 && !elements.select("td[class='noedge-l first']").isEmpty()){
+//                            document = Jsoup.connect("https://www.kongju.ac.kr/kongju/13163/subview.do").get();
+//                            elements = document.select("tbody tr");
+//                        }
+//                        select = document.select("thead tr th").indexOf(document.select("th.on").first())-1;
+//                        if (select < 0){
+//                            select = 0;
+//                        }
+//                    } catch (ArrayIndexOutOfBoundsException e) {
+//                        select = 6;
+//                    }
+//                    String regex = "(\\d{2}\\.\\d{2} )";
+//                    Pattern pattern = Pattern.compile(regex);
+//
+//                    String regex2 = "\\(\\s*(.+?)\\s*\\)";
+//                    Pattern pattern2 = Pattern.compile(regex2);
+//                    Elements week_menu_times = document.select("thead tr th");
+//                    Matcher matcher;
+//                    Matcher matcher2;
+//                    for (int i=1;i<week_menu_times.size();i++){
+//                        matcher = pattern.matcher(week_menu_times.get(i).text());
+//                        matcher2 = pattern2.matcher(week_menu_times.get(i).text());
+//                        if (matcher.find()) {
+//                            String extracted = matcher.group(1);
+//                            assert extracted != null;
+//                            week_menus[3][i-1] = extracted.replace(" ", "일").replace(".","월 ");
+//                        }
+//                        if (matcher2.find()) {
+//                            String extracted = matcher2.group(1);
+//                            assert extracted != null;
+//                            week_menus[4][i-1] = extracted;
+//                        }
+//                    }
+//                    for (Element e : elements){ // 주간 식단 저장
+//                        switch (e.children().get(0).text()){
+//                            case "조식":
+//                                for( int i=0;i< e.children().size()-1;i++){
+//                                    week_menus[0][i] = e.children().get(i+1).text();
+//                                }
+//                                break;
+//                            case "중식":
+//                                for( int i=0;i< e.children().size()-1;i++){
+//                                    week_menus[1][i] = e.children().get(i+1).text();
+//                                }
+//                                break;
+//                            case "석식":
+//                                for( int i=0;i< e.children().size()-1;i++){
+//                                    week_menus[2][i] = e.children().get(i+1).text();
+//                                }
+//                                break;
+//
+//                        }
+//                    }
+//                    saveWeekMenus(getApplicationContext(), week_menus);
+//                } else {
+//                    elements = document.select("tbody tr");
+//                    for (int i=0;i<elements.size();i++){
+//                        week_menus[0][i] = elements.get(i).select(food_time_type[0]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
+//                        week_menus[1][i] = elements.get(i).select(food_time_type[1]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
+//                        week_menus[2][i] = elements.get(i).select(food_time_type[2]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
+//                        week_menus[3][i] = elements.get(i).select("td[data-mqtitle='date']").text();
+//                        week_menus[4][i] = elements.get(i).select("td[data-mqtitle='day']").text();
+//                    }
+//                    List<String> list = Arrays.asList(elements.select("td[data-mqtitle='date']").text().replace(" ", "").split("일"));
+//                    select = list.indexOf(month + "월" + String.format("%02d", day));
+//                    saveWeekMenus(getApplicationContext(), week_menus);
+//                }
+//            }
+//            runOnUiThread(() -> {
+//                food_type_icon.setImageDrawable(ResourcesCompat.getDrawable(getResources(), food_icon[numbers], null));
+//                food_menu.removeAllViews();
+//                food_time_view.setText(food_time[numbers][select_campus][select_room]);
+//                try{
+//                    if (select < 0) {
+//                        throw new ArrayIndexOutOfBoundsException();
+//                    }else if (select >= 7){
+//                        select--;
+//                        Toast.makeText(getApplicationContext(),"마지막 페이지 입니다.",Toast.LENGTH_SHORT).show();
+//                    }
+//                }catch (ArrayIndexOutOfBoundsException exception){
+//                    select = 0;
+//                    Toast.makeText(getApplicationContext(),"마지막 페이지 입니다.",Toast.LENGTH_SHORT).show();
+//                }
+//                today_date.setText(week_menus[3][select]);
+//                food_day.setText("[ "+week_menus[4][select]+" ]");
+//                if (!week_menus[numbers][select].isEmpty() && !Objects.equals(week_menus[numbers][select], "등록된 식단내용이(가) 없습니다.")) {
+//                    List<String> menus = Arrays.asList(week_menus[numbers][select].replace(",", "").split(" "));
+//                    menus.forEach(menu -> food_menu.addView(makeMenu(menu)));
+//                } else {
+//                    food_menu.addView(makeMenu("밥 없어요~!!"));
+//                }
+//            });
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+
     @SuppressLint({"SetTextI18n", "DefaultLocale"})
     private void load_food(int numbers) {
         try {
@@ -691,111 +802,136 @@ public class MainActivity extends AppCompatActivity implements
                 setAlarm();
             }
             Document document;
-            Elements elements; // 일요일이 되면 기숙사를 제외한 일반 식단표는 그 다음 월요일 부터 다시 페이지를 띄우기 때문에 불러오는데 실패하여 오류가 발생.
+            Elements elements;
             if ((Objects.equals(week_menus[0][0], "") && Objects.equals(week_menus[1][0], "")) && Objects.equals(week_menus[2][0], "")) {
                 document = Jsoup.connect(select_room != 0 ? restaurants[select_room][select_campus] : campus[select_campus][select_food_room]).get();
                 elements = document.select("tbody tr");
                 if (select_room != 0 || select_campus == 0 && !elements.select("td[class='noedge-l first']").isEmpty() && elements.select("td[data-mqtitle='lunch']").text().isEmpty()) { // 기숙사가 아닐때 식단
                     try {
-                        if (select_campus == 0 && !elements.select("td[class='noedge-l first']").isEmpty()){
+                        if (select_campus == 0 && !elements.select("td[class='noedge-l first']").isEmpty()) {
                             document = Jsoup.connect("https://www.kongju.ac.kr/kongju/13163/subview.do").get();
                             elements = document.select("tbody tr");
                         }
-                        select = document.select("thead tr th").indexOf(document.select("th.on").first())-1;
-                        if (select < 0){
-                            select = 0;
+                        updateSelectAndWeekMenus(document);
+
+                        for (Element e : elements) {
+                            switch (e.children().get(0).text()) {
+                                case "조식":
+                                    updateWeekMenus(e, 0);
+                                    break;
+                                case "중식":
+                                    updateWeekMenus(e, 1);
+                                    break;
+                                case "석식":
+                                    updateWeekMenus(e, 2);
+                                    break;
+                            }
                         }
                     } catch (ArrayIndexOutOfBoundsException e) {
                         select = 6;
                     }
-                    String regex = "(\\d{2}\\.\\d{2} )";
-                    Pattern pattern = Pattern.compile(regex);
-
-                    String regex2 = "\\(\\s*(.+?)\\s*\\)";
-                    Pattern pattern2 = Pattern.compile(regex2);
-                    Elements week_menu_times = document.select("thead tr th");
-                    Matcher matcher;
-                    Matcher matcher2;
-                    for (int i=1;i<week_menu_times.size();i++){
-                        matcher = pattern.matcher(week_menu_times.get(i).text());
-                        matcher2 = pattern2.matcher(week_menu_times.get(i).text());
-                        if (matcher.find()) {
-                            String extracted = matcher.group(1);
-                            assert extracted != null;
-                            week_menus[3][i-1] = extracted.replace(" ", "일").replace(".","월 ");
-                        }
-                        if (matcher2.find()) {
-                            String extracted = matcher2.group(1);
-                            assert extracted != null;
-                            week_menus[4][i-1] = extracted;
-                        }
-                    }
-                    for (Element e : elements){ // 주간 식단 저장
-                        switch (e.children().get(0).text()){
-                            case "조식":
-                                for( int i=0;i< e.children().size()-1;i++){
-                                    week_menus[0][i] = e.children().get(i+1).text();
-                                }
-                                break;
-                            case "중식":
-                                for( int i=0;i< e.children().size()-1;i++){
-                                    week_menus[1][i] = e.children().get(i+1).text();
-                                }
-                                break;
-                            case "석식":
-                                for( int i=0;i< e.children().size()-1;i++){
-                                    week_menus[2][i] = e.children().get(i+1).text();
-                                }
-                                break;
-
-                        }
-                    }
                     saveWeekMenus(getApplicationContext(), week_menus);
                 } else {
-                    elements = document.select("tbody tr");
-                    for (int i=0;i<elements.size();i++){
-                        week_menus[0][i] = elements.get(i).select(food_time_type[0]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
-                        week_menus[1][i] = elements.get(i).select(food_time_type[1]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
-                        week_menus[2][i] = elements.get(i).select(food_time_type[2]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
-                        week_menus[3][i] = elements.get(i).select("td[data-mqtitle='date']").text();
-                        week_menus[4][i] = elements.get(i).select("td[data-mqtitle='day']").text();
-                    }
-                    List<String> list = Arrays.asList(elements.select("td[data-mqtitle='date']").text().replace(" ", "").split("일"));
-                    select = list.indexOf(month + "월" + String.format("%02d", day));
+                    updateWeekMenusForCampus(elements);
                     saveWeekMenus(getApplicationContext(), week_menus);
                 }
             }
-            runOnUiThread(() -> {
-                food_type_icon.setImageDrawable(ResourcesCompat.getDrawable(getResources(), food_icon[numbers], null));
-                food_menu.removeAllViews();
-                food_time_view.setText(food_time[numbers][select_campus][select_room]);
-                try{
-                    if (select < 0) {
-                        throw new ArrayIndexOutOfBoundsException();
-                    }else if (select >= 7){
-                        select--;
-                        Toast.makeText(getApplicationContext(),"마지막 페이지 입니다.",Toast.LENGTH_SHORT).show();
-                    }
-                }catch (ArrayIndexOutOfBoundsException exception){
-                    select = 0;
-                    Toast.makeText(getApplicationContext(),"마지막 페이지 입니다.",Toast.LENGTH_SHORT).show();
-                }
-                today_date.setText(week_menus[3][select]);
-                food_day.setText("[ "+week_menus[4][select]+" ]");
-                if (!week_menus[numbers][select].isEmpty() && !Objects.equals(week_menus[numbers][select], "등록된 식단내용이(가) 없습니다.")) {
-                    List<String> menus = Arrays.asList(week_menus[numbers][select].replace(",", "").split(" "));
-                    menus.forEach(menu -> food_menu.addView(makeMenu(menu)));
-                } else {
-                    food_menu.addView(makeMenu("밥 없어요~!!"));
-                }
-            });
+
+            updateUI(numbers);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    private void updateSelectAndWeekMenus(Document document) {
+        try {
+            select = document.select("thead tr th").indexOf(document.select("th.on").first()) - 1;
+            if (select < 0) {
+                select = 0;
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            select = 6;
+        }
+        System.out.println(select);
 
-    @NonNull
+        String regex = "(\\d{2}\\.\\d{2} )";
+        Pattern pattern = Pattern.compile(regex);
+
+        String regex2 = "\\(\\s*(.+?)\\s*\\)";
+        Pattern pattern2 = Pattern.compile(regex2);
+        Elements week_menu_times = document.select("thead tr th");
+        Matcher matcher;
+        Matcher matcher2;
+        for (int i = 1; i < week_menu_times.size(); i++) {
+            matcher = pattern.matcher(week_menu_times.get(i).text());
+            matcher2 = pattern2.matcher(week_menu_times.get(i).text());
+            if (matcher.find()) {
+                String extracted = matcher.group(1);
+                assert extracted != null;
+                week_menus[3][i - 1] = extracted.replace(" ", "일").replace(".", "월 ");
+            }
+            if (matcher2.find()) {
+                String extracted = matcher2.group(1);
+                assert extracted != null;
+                week_menus[4][i - 1] = extracted;
+            }
+        }
+    }
+
+    private void updateWeekMenus(Element e, int index) {
+        for (int i = 0; i < e.children().size() - 1; i++) {
+            week_menus[index][i] = e.children().get(i + 1).text();
+        }
+    }
+
+    @SuppressLint("DefaultLocale")
+    private void updateWeekMenusForCampus(Elements elements) {
+        for (int i = 0; i < elements.size(); i++) {
+            week_menus[0][i] = elements.get(i).select(food_time_type[0]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
+            week_menus[1][i] = elements.get(i).select(food_time_type[1]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
+            week_menus[2][i] = elements.get(i).select(food_time_type[2]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
+            week_menus[3][i] = elements.get(i).select("td[data-mqtitle='date']").text();
+            week_menus[4][i] = elements.get(i).select("td[data-mqtitle='day']").text();
+        }
+        List<String> list = Arrays.asList(elements.select("td[data-mqtitle='date']").text().replace(" ", "").split("일"));
+        select = list.indexOf(month + "월" + String.format("%02d", day));
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void updateUI(int numbers) {
+        runOnUiThread(() -> {
+            food_type_icon.setImageDrawable(ResourcesCompat.getDrawable(getResources(), food_icon[numbers], null));
+            food_menu.removeAllViews();
+            food_time_view.setText(food_time[numbers][select_campus][select_room]);
+            handleSelect();
+
+            today_date.setText(week_menus[3][select]);
+            food_day.setText("[ " + week_menus[4][select] + " ]");
+
+            if (!week_menus[numbers][select].isEmpty() && !Objects.equals(week_menus[numbers][select], "등록된 식단내용이(가) 없습니다.")) {
+                List<String> menus = Arrays.asList(week_menus[numbers][select].replace(",", "").split(" "));
+                menus.forEach(menu -> food_menu.addView(makeMenu(menu)));
+            } else {
+                food_menu.addView(makeMenu("밥 없어요~!!"));
+            }
+        });
+    }
+
+    private void handleSelect() {
+        try {
+            if (select < 0) {
+                throw new ArrayIndexOutOfBoundsException();
+            } else if (select >= 7) {
+                select--;
+                Toast.makeText(getApplicationContext(), "마지막 페이지 입니다.", Toast.LENGTH_SHORT).show();
+            }
+        } catch (ArrayIndexOutOfBoundsException exception) {
+            select = 0;
+            Toast.makeText(getApplicationContext(), "마지막 페이지 입니다.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private TextView makeMenu(String content) {
         TextView tv = new TextView(this);
         tv.setText(content);
@@ -847,7 +983,8 @@ public class MainActivity extends AppCompatActivity implements
 
         if (json != null) {
             Gson gson = new Gson();
-            TypeToken<String[][]> token = new TypeToken<String[][]>() {};
+            TypeToken<String[][]> token = new TypeToken<String[][]>() {
+            };
             return gson.fromJson(json, token.getType());
         }
 
