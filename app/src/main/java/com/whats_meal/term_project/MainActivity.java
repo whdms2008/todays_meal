@@ -100,7 +100,8 @@ public class MainActivity extends AppCompatActivity implements
             {"", "", "", "", "", "", ""},  // 조식
             {"", "", "", "", "", "", ""},  // 중식
             {"", "", "", "", "", "", ""}, // 석식
-            {"", "", "", "", "", "", ""}}; // 날짜
+            {"", "", "", "", "", "", ""}, // 날짜
+            {"", "", "", "", "", "", ""}}; // 요일
 
     String[] student_name = {"천안", "예산", "신관"};
 
@@ -159,7 +160,7 @@ public class MainActivity extends AppCompatActivity implements
     int[] food_icon = {R.drawable.sun_morning, R.drawable.breakfast, R.drawable.dinner_icon};
 
     BottomNavigationView bottomNavigationView;
-    TextView cam_name, diner_name, today_date, food_type, food_time_view;
+    TextView cam_name, diner_name, today_date, food_type, food_time_view, food_day;
     ImageView food_type_icon, notify_icon;
 
     Dialog dialog01;
@@ -231,6 +232,7 @@ public class MainActivity extends AppCompatActivity implements
         food_time_view = findViewById(R.id.food_time);
         food_menu = findViewById(R.id.food_menu);
         food_type_icon = findViewById(R.id.food_type_icon);
+        food_day = findViewById(R.id.day);
 
         dialog01 = new Dialog(MainActivity.this);
         dialog01.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -310,34 +312,29 @@ public class MainActivity extends AppCompatActivity implements
                 float deltaX = e2.getX() - e1.getX();
                 float deltaY = e2.getY() - e1.getY();
 
-                if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                    if (deltaX > 0) {
-                        try{
-                            select--;
-                            load_food(nums);
-                        }catch (ArrayIndexOutOfBoundsException ab){
-                            select++;
-                            load_food(nums);
-                            Toast.makeText(getApplicationContext(),"마지막 페이지 입니다.",Toast.LENGTH_SHORT).show();
+                if (nums <= 2 && Math.abs(deltaX) > Math.abs(deltaY)) {
+                        if (deltaX > 0) {
+                            try{
+                                select--;
+                                new Thread(() -> load_food(nums)).start();
+                            }catch (ArrayIndexOutOfBoundsException ab){
+                                select++;
+                                new Thread(() -> load_food(nums)).start();
+                            }
+                        } else {
+                            try{
+                                select++;
+                                new Thread(() -> load_food(nums)).start();
+                            }catch (ArrayIndexOutOfBoundsException ab){
+                                select--;
+                                new Thread(() -> load_food(nums)).start();
+                            }
                         }
-                    } else {
-                        try{
-                            select++;
-                            load_food(nums);
-                        }catch (ArrayIndexOutOfBoundsException ab){
-                            select--;
-                            load_food(nums);
-                            Toast.makeText(getApplicationContext(),"마지막 페이지 입니다.",Toast.LENGTH_SHORT).show();
-                        }
-                    }
                 }
                 return true;
             }
         });
-        view_page.setOnTouchListener((view, motionEvent) -> {
-            System.out.println(motionEvent);
-            return gestureDetector.onTouchEvent(motionEvent);
-        });
+        view_page.setOnTouchListener((view, motionEvent) -> gestureDetector.onTouchEvent(motionEvent));
 
     }
 
@@ -658,6 +655,7 @@ public class MainActivity extends AppCompatActivity implements
                             {"", "", "", "", "", "", ""},
                             {"", "", "", "", "", "", ""},
                             {"", "", "", "", "", "", ""},
+                            {"", "", "", "", "", "", ""},
                             {"", "", "", "", "", "", ""}};
 
                     int time_all = (f_hour * 60) + f_minute;
@@ -692,32 +690,46 @@ public class MainActivity extends AppCompatActivity implements
                 cancelAlarm();
                 setAlarm();
             }
-            System.out.println("numbs" + numbers);
-            System.out.println("select: "  + select);
             Document document;
             Elements elements;
             if ((Objects.equals(week_menus[0][0], "") && Objects.equals(week_menus[1][0], "")) && Objects.equals(week_menus[2][0], "")) {
                 document = Jsoup.connect(select_room != 0 ? restaurants[select_room][select_campus] : campus[select_campus][select_food_room]).get();
                 elements = document.select("tbody tr");
-                if (select_room != 0) { // 기숙사가 아닐때 식단
+                if (select_room != 0 || select_campus == 0 && !elements.select("td[class='noedge-l first']").isEmpty() && elements.select("td[data-mqtitle='lunch']").text().isEmpty()) { // 기숙사가 아닐때 식단
                     try {
+                        if (select_campus == 0 && !elements.select("td[class='noedge-l first']").isEmpty()){
+                            document = Jsoup.connect("https://www.kongju.ac.kr/kongju/13163/subview.do").get();
+                            elements = document.select("tbody tr");
+                        }
                         select = document.select("thead tr th").indexOf(document.select("th.on").first())-1;
+                        if (select < 0){
+                            select = 0;
+                        }
                     } catch (ArrayIndexOutOfBoundsException e) {
                         select = 6;
                     }
                     String regex = "(\\d{2}\\.\\d{2} )";
                     Pattern pattern = Pattern.compile(regex);
+
+                    String regex2 = "\\(\\s*(.+?)\\s*\\)";
+                    Pattern pattern2 = Pattern.compile(regex2);
                     Elements week_menu_times = document.select("thead tr th");
                     Matcher matcher;
+                    Matcher matcher2;
                     for (int i=1;i<week_menu_times.size();i++){
                         matcher = pattern.matcher(week_menu_times.get(i).text());
+                        matcher2 = pattern2.matcher(week_menu_times.get(i).text());
                         if (matcher.find()) {
                             String extracted = matcher.group(1);
                             assert extracted != null;
                             week_menus[3][i-1] = extracted.replace(" ", "일").replace(".","월 ");
                         }
+                        if (matcher2.find()) {
+                            String extracted = matcher2.group(1);
+                            assert extracted != null;
+                            week_menus[4][i-1] = extracted;
+                        }
                     }
-                    System.out.println(Arrays.toString(week_menus[3]));
                     for (Element e : elements){ // 주간 식단 저장
                         switch (e.children().get(0).text()){
                             case "조식":
@@ -745,10 +757,11 @@ public class MainActivity extends AppCompatActivity implements
                         week_menus[0][i] = elements.get(i).select(food_time_type[0]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
                         week_menus[1][i] = elements.get(i).select(food_time_type[1]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
                         week_menus[2][i] = elements.get(i).select(food_time_type[2]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
+                        week_menus[3][i] = elements.get(i).select("td[data-mqtitle='date']").text();
+                        week_menus[4][i] = elements.get(i).select("td[data-mqtitle='day']").text();
                     }
                     List<String> list = Arrays.asList(elements.select("td[data-mqtitle='date']").text().replace(" ", "").split("일"));
                     select = list.indexOf(month + "월" + String.format("%02d", day));
-                    System.out.println("선택 select : " + select);
                     saveWeekMenus(getApplicationContext(), week_menus);
                 }
             }
@@ -756,7 +769,19 @@ public class MainActivity extends AppCompatActivity implements
                 food_type_icon.setImageDrawable(ResourcesCompat.getDrawable(getResources(), food_icon[numbers], null));
                 food_menu.removeAllViews();
                 food_time_view.setText(food_time[numbers][select_campus][select_room]);
+                try{
+                    if (select < 0) {
+                        throw new ArrayIndexOutOfBoundsException();
+                    }else if (select >= 7){
+                        select--;
+                        Toast.makeText(getApplicationContext(),"마지막 페이지 입니다.",Toast.LENGTH_SHORT).show();
+                    }
+                }catch (ArrayIndexOutOfBoundsException exception){
+                    select = 0;
+                    Toast.makeText(getApplicationContext(),"마지막 페이지 입니다.",Toast.LENGTH_SHORT).show();
+                }
                 today_date.setText(week_menus[3][select]);
+                food_day.setText("[ "+week_menus[4][select]+" ]");
                 if (!week_menus[numbers][select].isEmpty() && !Objects.equals(week_menus[numbers][select], "등록된 식단내용이(가) 없습니다.")) {
                     List<String> menus = Arrays.asList(week_menus[numbers][select].replace(",", "").split(" "));
                     menus.forEach(menu -> food_menu.addView(makeMenu(menu)));

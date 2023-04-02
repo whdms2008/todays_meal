@@ -138,18 +138,18 @@
                 tools:ignore="RtlSymmetry" />
 
             <TextView
-                android:id="@+id/cal"
+                android:id="@+id/day"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="0.33"
-                android:paddingStart="5dp"
                 android:fontFamily="@font/scd5"
                 android:layout_gravity="center"
                 android:gravity="center_vertical"
-                android:text=""
+                android:textAlignment="center"
+                android:text="[ 월 ]"
                 android:textColor="@color/black"
-                android:textSize="19sp"
-                tools:ignore="RtlSymmetry" />
+                android:textSize="28sp"
+                tools:ignore="RtlCompat,RtlSymmetry" />
 
         </LinearLayout>
 
