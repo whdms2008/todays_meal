@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity implements
 
     boolean notify = false;
 
-    private static final int REQUEST_CODE_UPDATE = 1006;
+    private static final int REQUEST_CODE_UPDATE = 1008;
 
     private AppUpdateManager appUpdateManager;
     private InstallStateUpdatedListener installStateUpdatedListener;
