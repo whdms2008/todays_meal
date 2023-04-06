@@ -10,7 +10,9 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.content.SharedPreferences;
 import android.icu.text.SimpleDateFormat;
-import android.util.Log;
+import android.icu.text.SymbolTable;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -124,6 +126,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         int select_campus = pref.getInt("select_campus", 0);
         int select_food_room = pref.getInt("select_dorm_restaurant", 0);
         new Thread(() -> {
+            Elements elements;
             if (select_room != 0) {
                 try {
                     document = Jsoup.connect(restaurants[select_room][select_campus]).get();
@@ -137,34 +140,41 @@ public class AlarmReceiver extends BroadcastReceiver {
                     e.printStackTrace();
                 }
             }
-
             elements = document.select("tbody").select("tr"); //필요한 녀석만 꼬집어서 지정
-            if (select_room != 0) {
-                try{
-                    select = document.select("thead tr th").indexOf(document.select("th.on").first());
-
-                }catch (ArrayIndexOutOfBoundsException e){
-                    select = 7;
+            if (select_campus == 0 && !elements.select("td[class='noedge-l first']").isEmpty() && elements.select("td[data-mqtitle='breakfast']").text().isEmpty()){
+                try {
+                    document = Jsoup.connect("https://www.kongju.ac.kr/kongju/13163/subview.do").get();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
+                elements = document.select("tbody tr");
+            }
+            if (select_room != 0 || select_campus == 0 && elements.select("td[data-mqtitle='breakfast']").text().isEmpty()) {
+                Elements thElements = document.select("thead tr th");
+                Element onElement = document.select("th.on").first();
+
+                select = (onElement != null) ? thElements.indexOf(onElement)-1 : 6;
                 menu = "";
+
                 String[] meal_times = {"조식", "중식", "석식"};
                 for (int e_cnt = 0; e_cnt < elements.size(); e_cnt++) {
-                    String title = elements.get(e_cnt).select("th").text();
-                    if (Objects.equals(title, meal_times[select_id])) {
-                        menu = elements.get(e_cnt).select("td").get(select).text();
-                        break;
+                    if (select_id >= 0 && select_id < meal_times.length) {
+                        String title = elements.get(e_cnt).select("th").text();
+                        if (Objects.equals(title, meal_times[select_id])) {
+                            menu = elements.get(e_cnt).select("td").get(select).text();
+                            break;
+                        }
                     }
+
                 }
             } else {
                 List<String> list = Arrays.asList(elements.select("td[data-mqtitle='date']").text().replace(" ", "").split("일"));
                 select = list.indexOf(month + "월" + day);
-                try {
-
+                if (select >= 0 && select < elements.size()) {
                     Element e = elements.get(select);
                     menu = e.select(food_time_type[select_id]).text().replaceAll(",", " ").replaceAll(" {2}", " ");
-                } catch (ArrayIndexOutOfBoundsException e) {
+                } else {
                     menu = "";
-                    e.printStackTrace();
                 }
             }
             String rest_name = pref.getString("alarm_food_name", "천안");
@@ -188,9 +198,14 @@ public class AlarmReceiver extends BroadcastReceiver {
                     .setColor(Color.parseColor("#ffffff"))
                     .setStyle(new NotificationCompat.BigTextStyle().bigText(menu));
 
-            NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
-
-            notificationManagerCompat.notify(0, notificationBuilder.build());
+            if (checkNotificationPermission(context)) {
+                NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
+                notificationManagerCompat.notify(0, notificationBuilder.build());
+            }
         }).start();
+    }
+    private boolean checkNotificationPermission(Context context) {
+        NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
+        return notificationManagerCompat.areNotificationsEnabled();
     }
 }

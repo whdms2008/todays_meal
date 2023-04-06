@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity implements
 
     boolean notify = false;
 
-    private static final int REQUEST_CODE_UPDATE = 1008;
+    private static final int REQUEST_CODE_UPDATE = 1009;
 
     private AppUpdateManager appUpdateManager;
     private InstallStateUpdatedListener installStateUpdatedListener;
@@ -510,7 +510,7 @@ public class MainActivity extends AppCompatActivity implements
         return versionName;
     }
 
-    @SuppressLint("SetTextI18n")
+    @SuppressLint({"SetTextI18n", "DefaultLocale"})
     private void popup(int num) {
         runOnUiThread(() -> {
             if (num == 0) { // 캠퍼스
@@ -523,7 +523,7 @@ public class MainActivity extends AppCompatActivity implements
 
                 Button[] campus_list = {campus_1, campus_2, campus_3};
 
-                today_date.setText(month + "월 " + day + "일");
+                today_date.setText(month + "월 " +  String.format("%02d", day) + "일");
                 select_room = Integer.parseInt(String.valueOf(Temporary_food_type_num));
                 editor.putInt("select_restaurant", select_room);
 
@@ -731,15 +731,10 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void updateSelectAndWeekMenus(Document document) {
-        try {
-            select = document.select("thead tr th").indexOf(document.select("th.on").first()) - 1;
-            if (select < 0) {
-                select = 0;
-            }
-        } catch (ArrayIndexOutOfBoundsException e) {
-            select = 6;
-        }
-        System.out.println(select);
+        Elements thElements = document.select("thead tr th");
+        Element onElement = document.select("th.on").first();
+
+        select = (onElement != null) ? thElements.indexOf(onElement)-1 : 6;
 
         String regex = "(\\d{2}\\.\\d{2} )";
         Pattern pattern = Pattern.compile(regex);
