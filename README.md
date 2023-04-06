@@ -27,7 +27,7 @@
 - `Java : 8`
 - `JDK : 17.0.2`
 - `TargetSdk : 33`
-- `MinSdk : 27`
+- `MinSdk : 26`
 
 <br>
 
