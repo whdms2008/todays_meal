@@ -132,12 +132,14 @@ public class AlarmReceiver extends BroadcastReceiver {
                     document = Jsoup.connect(restaurants[select_room][select_campus]).get();
                 } catch (IOException e) {
                     e.printStackTrace();
+                    return;
                 }
             } else {
                 try {
                     document = Jsoup.connect(campus[select_campus][select_food_room]).get();
                 } catch (IOException e) {
                     e.printStackTrace();
+                    return;
                 }
             }
             elements = document.select("tbody").select("tr"); //필요한 녀석만 꼬집어서 지정
