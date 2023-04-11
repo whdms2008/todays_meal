@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity implements
 
     boolean notify = false;
 
-    private static final int REQUEST_CODE_UPDATE = 1010;
+    private static final int REQUEST_CODE_UPDATE = 1011;
 
     private AppUpdateManager appUpdateManager;
     private InstallStateUpdatedListener installStateUpdatedListener;
@@ -692,6 +692,7 @@ public class MainActivity extends AppCompatActivity implements
             if ((Objects.equals(week_menus[0][0], "") && Objects.equals(week_menus[1][0], "")) && Objects.equals(week_menus[2][0], "")) {
                 document = Jsoup.connect(select_room != 0 ? restaurants[select_room][select_campus] : campus[select_campus][select_food_room]).get();
                 elements = document.select("tbody tr");
+
                 if (select_room != 0 || select_campus == 0 && !elements.select("td[class='noedge-l first']").isEmpty() && elements.select("td[data-mqtitle='lunch']").text().isEmpty()) { // 기숙사가 아닐때 식단
                     try {
                         if (select_campus == 0 && !elements.select("td[class='noedge-l first']").isEmpty()) {
@@ -733,7 +734,6 @@ public class MainActivity extends AppCompatActivity implements
     private void updateSelectAndWeekMenus(Document document) {
         Elements thElements = document.select("thead tr th");
         Element onElement = document.select("th.on").first();
-
         select = (onElement != null) ? thElements.indexOf(onElement)-1 : 6;
 
         String regex = "(\\d{2}\\.\\d{2} )";
@@ -775,8 +775,6 @@ public class MainActivity extends AppCompatActivity implements
             week_menus[3][i] = elements.get(i).select("td[data-mqtitle='date']").text();
             week_menus[4][i] = elements.get(i).select("td[data-mqtitle='day']").text();
         }
-        List<String> list = Arrays.asList(elements.select("td[data-mqtitle='date']").text().replace(" ", "").split("일"));
-        select = list.indexOf(month + "월" + String.format("%02d", day));
     }
 
     @SuppressLint("SetTextI18n")
