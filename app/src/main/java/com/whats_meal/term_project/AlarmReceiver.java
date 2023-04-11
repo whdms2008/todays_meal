@@ -10,9 +10,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.content.SharedPreferences;
 import android.icu.text.SimpleDateFormat;
-import android.icu.text.SymbolTable;
-import android.widget.ImageView;
-import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -70,7 +67,6 @@ public class AlarmReceiver extends BroadcastReceiver {
     String month = getDate.split(":")[1];
     String day = getDate.split(":")[2];
     Document document;
-    Elements elements;
     AlarmManager alarmManager;
     Calendar calendar;
     String[] food_time_type = {"td[data-mqtitle='breakfast']", "td[data-mqtitle='lunch']", "td[data-mqtitle='dinner']"};
@@ -132,20 +128,24 @@ public class AlarmReceiver extends BroadcastReceiver {
                     document = Jsoup.connect(restaurants[select_room][select_campus]).get();
                 } catch (IOException e) {
                     e.printStackTrace();
+                    return;
                 }
             } else {
                 try {
                     document = Jsoup.connect(campus[select_campus][select_food_room]).get();
                 } catch (IOException e) {
                     e.printStackTrace();
+                    return;
                 }
             }
             elements = document.select("tbody").select("tr"); //필요한 녀석만 꼬집어서 지정
+
             if (select_campus == 0 && !elements.select("td[class='noedge-l first']").isEmpty() && elements.select("td[data-mqtitle='breakfast']").text().isEmpty()){
                 try {
                     document = Jsoup.connect("https://www.kongju.ac.kr/kongju/13163/subview.do").get();
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
+                    return;
                 }
                 elements = document.select("tbody tr");
             }
