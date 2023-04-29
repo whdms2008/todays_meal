@@ -26,6 +26,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -147,7 +148,8 @@ public class AlarmReceiver extends BroadcastReceiver {
                 try {
                     document = Jsoup.connect("https://www.kongju.ac.kr/kongju/13163/subview.do").get();
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
+                    return;
                 }
                 elements = document.select("tbody tr");
             }
