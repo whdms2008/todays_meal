@@ -22,4 +22,9 @@
     </string>
     <string name="attachment_summary_off">Only download attachments when manually requested</string>
     <string name="todo">TODO</string>
+    <string name="notification">Notification 버튼</string>
+    <string name="_12_03">12월 03일</string>
+    <string name="rest_naem">기숙사 식당</string>
+    <string name="campus_name">천안</string>
+    <string name="share_icon_des">식단 공유</string>
 </resources>

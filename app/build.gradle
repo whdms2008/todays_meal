@@ -10,8 +10,8 @@ android {
         applicationId "com.whats_meal.term_project"
         minSdk 26
         targetSdk 33
-        versionCode 12
-        versionName "1.0.73"
+        versionCode 13
+        versionName "1.0.8"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

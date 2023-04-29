@@ -14,9 +14,11 @@ import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.icu.text.SimpleDateFormat;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -30,6 +32,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -42,6 +45,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.core.content.res.ResourcesCompat;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -61,6 +65,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -159,13 +165,13 @@ public class MainActivity extends AppCompatActivity implements
     BottomNavigationView bottomNavigationView;
     TextView cam_name, diner_name, today_date, food_type, food_time_view, food_day;
     ImageView food_type_icon, notify_icon;
-
+    ImageButton share_btn;
     Dialog dialog01;
     Dialog menu_dialog;
 
     boolean notify = false;
 
-    private static final int REQUEST_CODE_UPDATE = 1012;
+    private static final int REQUEST_CODE_UPDATE = 1013;
 
     private AppUpdateManager appUpdateManager;
     private InstallStateUpdatedListener installStateUpdatedListener;
@@ -229,6 +235,8 @@ public class MainActivity extends AppCompatActivity implements
         food_menu = findViewById(R.id.food_menu);
         food_type_icon = findViewById(R.id.food_type_icon);
         food_day = findViewById(R.id.day);
+
+        share_btn = findViewById(R.id.share);
 
         dialog01 = new Dialog(MainActivity.this);
         dialog01.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -331,7 +339,39 @@ public class MainActivity extends AppCompatActivity implements
             }
         });
         view_page.setOnTouchListener((view, motionEvent) -> gestureDetector.onTouchEvent(motionEvent));
-
+        share_btn.setOnClickListener(v -> {
+            Bitmap bitmap = captureScreen();
+            Uri imageUri = saveBitmapToFile(bitmap);
+            shareImage(imageUri);
+        });
+    }
+    private Bitmap captureScreen() {
+        View rootView = getWindow().getDecorView().getRootView();
+        rootView.setDrawingCacheEnabled(true);
+        Bitmap bitmap = Bitmap.createBitmap(rootView.getDrawingCache());
+        rootView.setDrawingCacheEnabled(false);
+        return bitmap;
+    }
+    private Uri saveBitmapToFile(Bitmap bitmap) {
+        try {
+            File cachePath = new File(getExternalCacheDir(), "images");
+            cachePath.mkdirs();
+            FileOutputStream stream = new FileOutputStream(cachePath + "/screenshot.png");
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+            stream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        File imagePath = new File(getExternalCacheDir(), "images/screenshot.png");
+        return FileProvider.getUriForFile(this, getPackageName() + ".provider", imagePath);
+    }
+    private void shareImage(Uri imageUri) {
+        Intent shareIntent = new Intent();
+        shareIntent.setAction(Intent.ACTION_SEND);
+        shareIntent.setType("image/png");
+        shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivity(Intent.createChooser(shareIntent, "식단 공유하기"));
     }
 
 
