@@ -203,7 +203,7 @@
             android:layout_height="0dp"
             android:layout_marginLeft="14dp"
             android:layout_marginRight="14dp"
-            android:layout_marginBottom="10dp"
+            android:layout_marginBottom="50dp"
             android:layout_weight="1"
             android:background="@drawable/border_radius_bottom"
             android:elevation="3dp"
@@ -242,6 +242,27 @@
             </android.widget.ImageButton>
 
         </LinearLayout>
+        <LinearLayout
+            android:id="@+id/ad_layout"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginRight="15dp"
+            android:layout_marginLeft="15dp"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            >
+            <android.widget.Button
+                android:id="@+id/ad_btn"
+                android:background="@drawable/button_ad_round"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fontFamily="@font/scd6"
+                android:textSize="15sp"
+                android:elevation="0dp"
+                android:stateListAnimator="@null"
+                android:text="개발자 도와주기"
+                />
+        </LinearLayout>
 
     </LinearLayout>
 
@@ -251,8 +272,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fontFamily="@font/scd5"
-        android:paddingTop="15dp"
-        android:paddingBottom="15dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
         app:itemPaddingBottom="10dp"
         app:labelVisibilityMode="labeled"
         app:menu="@menu/bottom"

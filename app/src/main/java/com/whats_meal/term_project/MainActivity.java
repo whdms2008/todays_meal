@@ -110,6 +110,8 @@ public class MainActivity extends AppCompatActivity implements
     AtomicInteger Temporary_food_type_num = new AtomicInteger();
     AtomicInteger Temporary_food_room_num = new AtomicInteger();
     LinearLayout food_menu;
+
+    LinearLayout ad_container;
     String[][] campus = {
             {"https://dormi.kongju.ac.kr/HOME/sub.php?code=041303"}, // 천안 생활관 식당 [ 천안 ]
             {"https://dormi.kongju.ac.kr/HOME/sub.php?code=041304"}, // 예산 생활관 식당 [ X ]
@@ -181,6 +183,8 @@ public class MainActivity extends AppCompatActivity implements
     int select_campus = 0; // 캠퍼스 종류
     int select_room = 0; // 식당 종류
     int select_food_room = 0; // 기숙사의 경우 식당 종류
+
+    int today_select = -1;
     String food_menus = ""; // 기숙사 조식
     int[] food_icon = {R.drawable.sun_morning, R.drawable.breakfast, R.drawable.dinner_icon};
 
@@ -192,8 +196,12 @@ public class MainActivity extends AppCompatActivity implements
     ImageButton like_btn;
     ImageButton hate_btn;
 
+    Button ad_btn;
+
     Dialog dialog01;
     Dialog menu_dialog;
+
+    LinearLayout likes_container;
 
     private boolean notify = false;
 
@@ -275,6 +283,7 @@ public class MainActivity extends AppCompatActivity implements
         food_type_icon = findViewById(R.id.food_type_icon);
         food_day = findViewById(R.id.day);
 
+        ad_btn = findViewById(R.id.ad_btn);
         share_btn = findViewById(R.id.share);
 
         like_btn = findViewById(R.id.like_button);
@@ -314,6 +323,10 @@ public class MainActivity extends AppCompatActivity implements
         menu_params.width = LinearLayout.LayoutParams.MATCH_PARENT;
         menu_params.height = LinearLayout.LayoutParams.WRAP_CONTENT;
         menu_dialog.getWindow().setAttributes(menu_params);
+
+        likes_container = findViewById(R.id.like_dislike_container);
+
+        ad_container = findViewById(R.id.ad_layout);
 
 
         notify_icon = findViewById(R.id.notification);
@@ -377,7 +390,6 @@ public class MainActivity extends AppCompatActivity implements
                 float deltaY = e2.getY() - e1.getY();
 
                 if (nums <= 2 && Math.abs(deltaX) > Math.abs(deltaY)) {
-                    showInterstitial();
                     if (deltaX > 0) {
                         try {
                             select--;
@@ -405,7 +417,12 @@ public class MainActivity extends AppCompatActivity implements
             Uri imageUri = saveBitmapToFile(bitmap);
             shareImage(imageUri);
         });
-        loadAd();
+
+        ad_btn.setOnClickListener(view ->{
+            loadAd();
+            showInterstitial();
+        });
+
     }
 
     public static String generateUUID() {
@@ -533,10 +550,6 @@ public class MainActivity extends AppCompatActivity implements
                     @Override
                     public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
                         mInterstitialAd = interstitialAd;
-                        Log.i("ad", "onAdLoaded");
-                        Toast.makeText(MainActivity.this, "onAdLoaded()", Toast.LENGTH_SHORT).show();
-
-
                         mInterstitialAd.setFullScreenContentCallback(
                                 new FullScreenContentCallback() {
 
@@ -583,9 +596,9 @@ public class MainActivity extends AppCompatActivity implements
     private void showInterstitial() {
         if (mInterstitialAd != null) {
             mInterstitialAd.show(this);
-            Toast.makeText(this, "Ad loaded", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "도움 주셔서 감사합니다.", Toast.LENGTH_SHORT).show();
         } else {
-            Toast.makeText(this, "Ad did not load", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "다시한번 눌러주세요.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -673,7 +686,6 @@ public class MainActivity extends AppCompatActivity implements
         notify = false;
         editor.putBoolean("notify", false);
         editor.apply();
-        notify_icon.setImageDrawable(getDrawable(R.drawable.false_bell));
 
         Intent intent = new Intent(this, AlarmReceiver.class);
 
@@ -689,6 +701,7 @@ public class MainActivity extends AppCompatActivity implements
         for (PendingIntent pendingIntent : pendingIntents) {
             alarmManager.cancel(pendingIntent);
         }
+        notify_icon.setImageDrawable(getDrawable(R.drawable.false_bell));
 
     }
 
@@ -706,11 +719,11 @@ public class MainActivity extends AppCompatActivity implements
         if (Build.VERSION_CODES.TIRAMISU == Build.VERSION.SDK_INT) {
             requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
         }
+        notify_icon.setImageDrawable(getDrawable(R.drawable.true_bell));
         notify = true;
         editor.putBoolean("notify", true);
         editor.apply();
 
-        notify_icon.setImageDrawable(getDrawable(R.drawable.true_bell));
         calendar = Calendar.getInstance();
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
@@ -763,6 +776,7 @@ public class MainActivity extends AppCompatActivity implements
         @Override
         public void handleMessage(Message msg) {
             Bundle bundle = msg.getData();
+            int temp_num = nums;
             nums = Integer.parseInt(bundle.getString("numbers"));
             new Thread(() -> {
                 switch (nums) {
@@ -775,10 +789,10 @@ public class MainActivity extends AppCompatActivity implements
                         load_food(nums);
                         break;
                     case 3:
-                        popup(0);
+                        popup(0, temp_num);
                         break;
                     case 4:
-                        popup(1);
+                        popup(1, temp_num);
                         break;
                 }
             }).start();
@@ -797,7 +811,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @SuppressLint({"SetTextI18n", "DefaultLocale"})
-    private void popup(int num) {
+    private void popup(int num, int temp_num) {
         runOnUiThread(() -> {
             if (num == 0) { // 캠퍼스
                 dialog01.show(); // 다이얼로그 띄우기
@@ -906,8 +920,20 @@ public class MainActivity extends AppCompatActivity implements
 
                 // ================= 기숙사 식당 선택 ==================
 
-                dialog01.findViewById(R.id.noBtn).setOnClickListener(view -> dialog01.dismiss());
+                dialog01.findViewById(R.id.noBtn).setOnClickListener(view -> {
+                    nums = temp_num;
+                    if (nums == 0) {
+                        findViewById(R.id.sun_rise).performClick();
+                    } else if (nums == 1) {
+                        findViewById(R.id.sun).performClick();
+
+                    } else if (nums == 2) {
+                        findViewById(R.id.moon).performClick();
+                    }
+                    dialog01.dismiss();
+                });
                 dialog01.findViewById(R.id.yesBtn).setOnClickListener(view -> {
+                    today_select = -1;
                     select_campus = Integer.parseInt(String.valueOf(Temporary_num));
                     editor.putInt("select_campus", select_campus);
                     editor.apply();
@@ -954,11 +980,21 @@ public class MainActivity extends AppCompatActivity implements
                     dialog01.dismiss(); // 다이얼로그 닫기
                 });
             } else { // 메뉴
+                nums = temp_num;
                 menu_dialog.show(); // 다이얼로그 띄우기
                 menu_dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
                 TextView app_version = menu_dialog.findViewById(R.id.app_version);
                 app_version.setText(getVersion(this));
                 menu_dialog.findViewById(R.id.confirm_btn).setOnClickListener(view -> {
+
+                    if (nums == 0) {
+                        findViewById(R.id.sun_rise).performClick();
+                    } else if (nums == 1) {
+                        findViewById(R.id.sun).performClick();
+
+                    } else if (nums == 2) {
+                        findViewById(R.id.moon).performClick();
+                    }
                     menu_dialog.dismiss(); // 다이얼로그 닫기
                 });
             }
@@ -1009,7 +1045,6 @@ public class MainActivity extends AppCompatActivity implements
                     saveWeekMenus(getApplicationContext(), week_menus);
                 }
             }
-
             updateUI(numbers);
 
         } catch (IOException e) {
@@ -1021,7 +1056,9 @@ public class MainActivity extends AppCompatActivity implements
         Elements thElements = document.select("thead tr th");
         Element onElement = document.select("th.on").first();
         select = (onElement != null) ? thElements.indexOf(onElement) - 1 : 6;
-
+        if (today_select == -1){
+            today_select = select;
+        }
         String regex = "(\\d{2}\\.\\d{2} )";
         Pattern pattern = Pattern.compile(regex);
 
@@ -1063,6 +1100,9 @@ public class MainActivity extends AppCompatActivity implements
         }
         List<String> list = Arrays.asList(elements.select("td[data-mqtitle='date']").text().replace(" ", "").split("일"));
         select = list.indexOf(month + "월" + String.format("%02d", day));
+        if (today_select == -1){
+            today_select = select;
+        }
     }
 
     @SuppressLint("SetTextI18n")
@@ -1081,6 +1121,13 @@ public class MainActivity extends AppCompatActivity implements
                 menus.forEach(menu -> food_menu.addView(makeMenu(menu)));
             } else {
                 food_menu.addView(makeMenu("밥 없어요~!!"));
+            }
+            if (today_select == select){
+                    likes_container.setVisibility(View.VISIBLE);
+                    ad_container.setVisibility(View.GONE);
+            }else if (today_select != -1){
+                    likes_container.setVisibility(View.GONE); // 이것으로 가시성을 INVISIBLE로 설정합니다.
+                    ad_container.setVisibility(View.VISIBLE);
             }
         });
     }
