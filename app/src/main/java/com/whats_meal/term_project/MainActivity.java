@@ -1,5 +1,7 @@
 package com.whats_meal.term_project;
 
+import static android.content.ContentValues.TAG;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -25,6 +27,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -48,6 +51,14 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.core.content.res.ResourcesCompat;
 
+import com.google.android.gms.ads.AdError;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.FullScreenContentCallback;
+import com.google.android.gms.ads.LoadAdError;
+import com.google.android.gms.ads.MobileAds;
+
+import com.google.android.gms.ads.interstitial.InterstitialAd;
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.play.core.appupdate.AppUpdateInfo;
@@ -58,6 +69,10 @@ import com.google.android.play.core.install.model.AppUpdateType;
 import com.google.android.play.core.install.model.InstallStatus;
 import com.google.android.play.core.install.model.UpdateAvailability;
 import com.google.android.play.core.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.Transaction;
 import com.google.gson.Gson;
 
 import org.jsoup.Jsoup;
@@ -78,9 +93,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.UUID;
+
 public class MainActivity extends AppCompatActivity implements
         GestureDetector.OnGestureListener,
-        GestureDetector.OnDoubleTapListener {
+        GestureDetector.OnDoubleTapListener{
 
     private Calendar calendar;
     private AlarmManager alarmManager;
@@ -154,6 +173,9 @@ public class MainActivity extends AppCompatActivity implements
     String minute = getDate.split(":")[4];
     String alarm_food_name = "";
     String alarm_food_type_name = "";
+
+    String vote_stats;
+
     int select = 0;
     int nums = 0; // 조식, 중식, 석식
     int select_campus = 0; // 캠퍼스 종류
@@ -166,18 +188,27 @@ public class MainActivity extends AppCompatActivity implements
     TextView cam_name, diner_name, today_date, food_type, food_time_view, food_day;
     ImageView food_type_icon, notify_icon;
     ImageButton share_btn;
+
+    ImageButton like_btn;
+    ImageButton hate_btn;
+
     Dialog dialog01;
     Dialog menu_dialog;
 
-    boolean notify = false;
+    private boolean notify = false;
 
-    private static final int REQUEST_CODE_UPDATE = 1013;
+    private static final int REQUEST_CODE_UPDATE = 1014;
 
     private AppUpdateManager appUpdateManager;
     private InstallStateUpdatedListener installStateUpdatedListener;
 
     private GestureDetector gestureDetector;
 
+    private InterstitialAd mInterstitialAd;
+
+    private FirebaseFirestore db;
+
+    private String uuid;
 
     @SuppressLint({"UseCompatLoadingForDrawables", "SetTextI18n", "NonConstantResourceId", "ClickableViewAccessibility", "DefaultLocale"})
     @Override
@@ -186,6 +217,12 @@ public class MainActivity extends AppCompatActivity implements
 
         setContentView(R.layout.activity_main);
 
+        MobileAds.initialize(this, initializationStatus -> {
+        });
+
+        // Firestore 인스턴스 초기화
+        db = FirebaseFirestore.getInstance();
+        updateButtonWidths();
         LinearLayout view_page = findViewById(R.id.view_page);
         appUpdateManager = AppUpdateManagerFactory.create(this);
 
@@ -226,6 +263,8 @@ public class MainActivity extends AppCompatActivity implements
         notify = pref.getBoolean("notify", false);
         alarm_food_name = pref.getString("alarm_food_name", "천안");
         alarm_food_type_name = pref.getString("alarm_food_type_name", "기숙사 식당");
+        uuid = getStoredUUID();
+        vote_stats = pref.getString("like_dislike","");
 
         cam_name = findViewById(R.id.cam_name);
         diner_name = findViewById(R.id.diner_type);
@@ -237,6 +276,27 @@ public class MainActivity extends AppCompatActivity implements
         food_day = findViewById(R.id.day);
 
         share_btn = findViewById(R.id.share);
+
+        like_btn = findViewById(R.id.like_button);
+        like_btn.setOnClickListener(view -> updateLikesCount("like"));
+
+
+        hate_btn = findViewById(R.id.dislike_button);
+        hate_btn.setOnClickListener(view -> updateLikesCount("hate"));
+
+        checkIfUUIDExistsInArray(exists -> {
+            if (exists) {
+                if (vote_stats.equals("like")) {
+                    like_btn.setImageResource(R.drawable.true_like);
+                } else if (vote_stats.equals("dislike")) {
+                    hate_btn.setImageResource(R.drawable.true_dislike);
+                }
+            }else{
+                vote_stats = "";
+                editor.putString("like_dislike", vote_stats);
+                editor.apply();
+            }
+        });
 
         dialog01 = new Dialog(MainActivity.this);
         dialog01.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -258,7 +318,7 @@ public class MainActivity extends AppCompatActivity implements
 
         notify_icon = findViewById(R.id.notification);
         notify_icon.setImageDrawable(
-                notify ? getDrawable(R.drawable.baseline_notifications_black_48) : getDrawable(R.drawable.baseline_notifications_off_black_48)
+                notify ? getDrawable(R.drawable.true_bell) : getDrawable(R.drawable.false_bell)
         );
         notify_icon.setOnClickListener(view -> {
             if (notify) {
@@ -317,6 +377,7 @@ public class MainActivity extends AppCompatActivity implements
                 float deltaY = e2.getY() - e1.getY();
 
                 if (nums <= 2 && Math.abs(deltaX) > Math.abs(deltaY)) {
+                    showInterstitial();
                     if (deltaX > 0) {
                         try {
                             select--;
@@ -344,7 +405,190 @@ public class MainActivity extends AppCompatActivity implements
             Uri imageUri = saveBitmapToFile(bitmap);
             shareImage(imageUri);
         });
+        loadAd();
     }
+
+    public static String generateUUID() {
+        UUID uuid = UUID.randomUUID();
+        return uuid.toString();
+    }
+
+    private String getStoredUUID() {
+        String uuid = pref.getString("uuid", null);
+
+        if (uuid == null) {
+            uuid = generateUUID();
+            editor.putString("uuid", uuid);
+            editor.apply();
+        }
+
+        return uuid;
+    }public interface UUIDExistsCallback {
+        void onResult(boolean exists);
+    }
+    private void checkIfUUIDExistsInArray(UUIDExistsCallback callback) {
+        db.collection("whats-meal")
+                .whereArrayContains("uuid", uuid)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        callback.onResult(!task.getResult().isEmpty());
+                    } else {
+                        Log.d(TAG, "get fail with : ", task.getException());
+                        callback.onResult(false);
+                    }
+                });
+    }
+    private void updateButtonWidths() {
+        AtomicInteger likes = new AtomicInteger();
+        AtomicInteger dislikes = new AtomicInteger();
+        DocumentReference docRef = db.collection("whats-meal").document("UONJD4v5ZgCEdfTAHt9F");
+
+        // 트랜잭션 실행
+        db.runTransaction((Transaction.Function<Void>) transaction -> {
+            // 문서 가져오기
+            DocumentSnapshot snapshot = transaction.get(docRef);
+            likes.set(Objects.requireNonNull(snapshot.getLong("like")).intValue());
+            dislikes.set(Objects.requireNonNull(snapshot.getLong("hate")).intValue());
+            return null;
+        }).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                runOnUiThread(() -> {
+                    float total = likes.get() + dislikes.get();
+                    float likeWeight = likes.get() / total;
+                    float dislikeWeight = dislikes.get() / total;
+
+                    LinearLayout.LayoutParams likeParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, likeWeight);
+                    LinearLayout.LayoutParams dislikeParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, dislikeWeight);
+                    like_btn.setLayoutParams(likeParams);
+                    hate_btn.setLayoutParams(dislikeParams);
+                });
+                Log.d("Transaction", "Success");
+            } else {
+                Log.d("Transaction", "Failure", task.getException());
+            }
+        });
+    }
+
+
+    private void updateLikesCount(String types) {
+        updateButtonWidths();
+        if (!vote_stats.equals("")){
+            Toast.makeText(getApplicationContext(), "하루에 한번만 가능합니다.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        DocumentReference docRef = db.collection("whats-meal").document("UONJD4v5ZgCEdfTAHt9F");
+        checkIfUUIDExistsInArray(exists -> {
+            if (!exists) {
+                // 트랜잭션 실행
+                db.collection("whats-meal")
+                        .document("UONJD4v5ZgCEdfTAHt9F")
+                        .update("uuid", FieldValue.arrayUnion(uuid));
+                db.runTransaction((Transaction.Function<Void>) transaction -> {
+                    // 문서 가져오기
+                    DocumentSnapshot snapshot = transaction.get(docRef);
+                    // 기존 'like' 및 'hate' 값을 가져온 후 +1 증가
+
+                    if (Objects.equals(types, "like")) {
+                        editor.putString("like_dislike", "like");
+                        Long likeValue = snapshot.getLong("like");
+                        long newLikeValue = (likeValue != null ? likeValue : 0) + 1;
+                        // 새로운 값으로 'like' 및 'hate' 업데이트
+                        transaction.update(docRef, "like", newLikeValue);
+                        like_btn.setImageResource(R.drawable.true_like);
+                    } else {
+                        editor.putString("like_dislike", "dislike");
+                        Long likeValue = snapshot.getLong("hate");
+                        long newHateValue = (likeValue != null ? likeValue : 0) + 1;
+                        // 새로운 값으로 'like' 및 'hate' 업데이트
+                        transaction.update(docRef, "hate", newHateValue);
+                        hate_btn.setImageResource(R.drawable.true_dislike);
+
+                    }
+                    editor.apply();
+
+                    return null;
+                }).addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Log.d("Transaction", "Success");
+                        Toast.makeText(getApplicationContext(), "투표 완료", Toast.LENGTH_SHORT).show();
+                        updateButtonWidths();
+                    } else {
+                        Log.d("Transaction", "Failure", task.getException());
+                    }
+                });
+            }
+        });
+    }
+
+
+    public void loadAd() {
+
+        AdRequest adRequest = new AdRequest.Builder().build();
+
+        InterstitialAd.load(this,
+                "ca-app-pub-3940256099942544/1033173712",
+                adRequest,
+                new InterstitialAdLoadCallback() {
+                    @Override
+                    public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
+                        mInterstitialAd = interstitialAd;
+                        Log.i("ad", "onAdLoaded");
+                        Toast.makeText(MainActivity.this, "onAdLoaded()", Toast.LENGTH_SHORT).show();
+
+
+                        mInterstitialAd.setFullScreenContentCallback(
+                                new FullScreenContentCallback() {
+
+                                    @Override
+                                    public void onAdDismissedFullScreenContent() {
+                                        // Called when ad is dismissed.
+                                        // Set the ad reference to null so you don't show the ad a second time.
+                                        Log.d("ads", "Ad dismissed fullscreen content.");
+                                        mInterstitialAd = null;
+                                    }
+
+                                    @Override
+                                    public void onAdFailedToShowFullScreenContent(@NonNull AdError adError) {
+                                        // Called when ad fails to show.
+                                        Log.e("ads", "Ad failed to show fullscreen content.");
+                                        mInterstitialAd = null;
+                                    }
+
+                                    @Override
+                                    public void onAdShowedFullScreenContent() {
+                                        // Called when ad is shown.
+                                        Log.d("ads", "Ad showed fullscreen content.");
+                                    }
+                                });
+                    }
+
+                    @Override
+                    public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+                        // Handle the error
+                        Log.i("ads", loadAdError.getMessage());
+                        mInterstitialAd = null;
+
+                        @SuppressLint("DefaultLocale") String error =
+                                String.format(
+                                        "domain: %s, code: %d, message: %s",
+                                        loadAdError.getDomain(), loadAdError.getCode(), loadAdError.getMessage());
+                        Toast.makeText(
+                                        MainActivity.this, "onAdFailedToLoad() with error: " + error, Toast.LENGTH_SHORT)
+                                .show();
+                    }
+                });
+    }
+
+    private void showInterstitial() {
+        if (mInterstitialAd != null) {
+            mInterstitialAd.show(this);
+            Toast.makeText(this, "Ad loaded", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Ad did not load", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private Bitmap captureScreen() {
         View rootView = getWindow().getDecorView().getRootView();
         rootView.setDrawingCacheEnabled(true);
@@ -352,10 +596,13 @@ public class MainActivity extends AppCompatActivity implements
         rootView.setDrawingCacheEnabled(false);
         return bitmap;
     }
+
     private Uri saveBitmapToFile(Bitmap bitmap) {
         try {
             File cachePath = new File(getExternalCacheDir(), "images");
-            cachePath.mkdirs();
+            if (!cachePath.mkdirs()) {
+                Log.e(TAG, "디렉토리 생성실패 : " + cachePath);
+            }
             FileOutputStream stream = new FileOutputStream(cachePath + "/screenshot.png");
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
             stream.close();
@@ -365,6 +612,7 @@ public class MainActivity extends AppCompatActivity implements
         File imagePath = new File(getExternalCacheDir(), "images/screenshot.png");
         return FileProvider.getUriForFile(this, getPackageName() + ".provider", imagePath);
     }
+
     private void shareImage(Uri imageUri) {
         Intent shareIntent = new Intent();
         shareIntent.setAction(Intent.ACTION_SEND);
@@ -417,6 +665,7 @@ public class MainActivity extends AppCompatActivity implements
         Message msg = handler.obtainMessage();
         msg.setData(bundle);
         handler.sendMessage(msg);
+        updateButtonWidths();
     }
 
     @SuppressLint("UseCompatLoadingForDrawables")
@@ -424,7 +673,7 @@ public class MainActivity extends AppCompatActivity implements
         notify = false;
         editor.putBoolean("notify", false);
         editor.apply();
-        notify_icon.setImageDrawable(getDrawable(R.drawable.baseline_notifications_off_black_48));
+        notify_icon.setImageDrawable(getDrawable(R.drawable.false_bell));
 
         Intent intent = new Intent(this, AlarmReceiver.class);
 
@@ -461,7 +710,7 @@ public class MainActivity extends AppCompatActivity implements
         editor.putBoolean("notify", true);
         editor.apply();
 
-        notify_icon.setImageDrawable(getDrawable(R.drawable.baseline_notifications_black_48));
+        notify_icon.setImageDrawable(getDrawable(R.drawable.true_bell));
         calendar = Calendar.getInstance();
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
@@ -497,18 +746,15 @@ public class MainActivity extends AppCompatActivity implements
 
 
     private void createNotificationChannel() {
+        CharSequence name = "알림";
+        String description = "알림입니다!";
+        int importance = NotificationManager.IMPORTANCE_HIGH;
+        NotificationChannel channel = new NotificationChannel("JoEun_Notification_Channel", name, importance);
+        channel.setDescription(description);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "알림";
-            String description = "알림입니다!";
-            int importance = NotificationManager.IMPORTANCE_HIGH;
-            NotificationChannel channel = new NotificationChannel("JoEun_Notification_Channel", name, importance);
-            channel.setDescription(description);
+        NotificationManager notificationManager = getSystemService(NotificationManager.class);
+        notificationManager.createNotificationChannel(channel);
 
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
-
-        }
     }
 
 
@@ -563,7 +809,7 @@ public class MainActivity extends AppCompatActivity implements
 
                 Button[] campus_list = {campus_1, campus_2, campus_3};
 
-                today_date.setText(month + "월 " +  String.format("%02d", day) + "일");
+                today_date.setText(month + "월 " + String.format("%02d", day) + "일");
                 select_room = Integer.parseInt(String.valueOf(Temporary_food_type_num));
                 editor.putInt("select_restaurant", select_room);
 
@@ -774,7 +1020,7 @@ public class MainActivity extends AppCompatActivity implements
     private void updateSelectAndWeekMenus(Document document) {
         Elements thElements = document.select("thead tr th");
         Element onElement = document.select("th.on").first();
-        select = (onElement != null) ? thElements.indexOf(onElement)-1 : 6;
+        select = (onElement != null) ? thElements.indexOf(onElement) - 1 : 6;
 
         String regex = "(\\d{2}\\.\\d{2} )";
         Pattern pattern = Pattern.compile(regex);
@@ -859,7 +1105,6 @@ public class MainActivity extends AppCompatActivity implements
         tv.setTextColor(Color.parseColor("#000000"));
         tv.setGravity(Gravity.CENTER);
         tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-        tv.setTextSize(2, 25);
         tv.setIncludeFontPadding(false);
         tv.setTypeface(getResources().getFont(R.font.scd5));
         LinearLayout.LayoutParams param = new LinearLayout.LayoutParams(
@@ -868,6 +1113,12 @@ public class MainActivity extends AppCompatActivity implements
         param.leftMargin = 20;
         param.rightMargin = 20;
         tv.setLayoutParams(param);
+        int minTextSize = 20;
+        int maxTextSize = 23;
+        int stepGranularity = 1;
+        tv.setAutoSizeTextTypeUniformWithConfiguration(minTextSize, maxTextSize, stepGranularity, TypedValue.COMPLEX_UNIT_SP);
+
+
         return tv;
     }
 
@@ -882,7 +1133,7 @@ public class MainActivity extends AppCompatActivity implements
         rdb.setTextColor(color);
         rdb.setGravity(Gravity.CENTER);
         rdb.setTypeface(getResources().getFont(R.font.scd5));
-        rdb.setLayoutParams(new LinearLayout.LayoutParams(0, 150, 1));
+        rdb.setLayoutParams(new LinearLayout.LayoutParams(0, 160, 1));
         rdb.setOnClickListener(view -> Temporary_food_room_num.set(number));
         return rdb;
     }
@@ -906,6 +1157,11 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public boolean onDoubleTap(@NonNull MotionEvent e) {
+        if (mInterstitialAd != null) {
+            mInterstitialAd.show(MainActivity.this);
+        } else {
+            Log.d("TAG", "The interstitial ad wasn't ready yet.");
+        }
         return false;
     }
 
