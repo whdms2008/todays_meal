@@ -99,7 +99,7 @@ import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements
         GestureDetector.OnGestureListener,
-        GestureDetector.OnDoubleTapListener{
+        GestureDetector.OnDoubleTapListener {
 
     private Calendar calendar;
     private AlarmManager alarmManager;
@@ -176,7 +176,8 @@ public class MainActivity extends AppCompatActivity implements
     String alarm_food_name = "";
     String alarm_food_type_name = "";
 
-    String vote_stats;
+    ArrayList<ArrayList<Integer>> vote_stats = new ArrayList<>();
+
 
     int select = 0;
     int nums = 0; // 조식, 중식, 석식
@@ -189,7 +190,8 @@ public class MainActivity extends AppCompatActivity implements
     int[] food_icon = {R.drawable.sun_morning, R.drawable.breakfast, R.drawable.dinner_icon};
 
     BottomNavigationView bottomNavigationView;
-    TextView cam_name, diner_name, today_date, food_type, food_time_view, food_day;
+    TextView cam_name, diner_name, today_date, food_type, food_time_view, food_day, update_view;
+
     ImageView food_type_icon, notify_icon;
     ImageButton share_btn;
 
@@ -201,11 +203,15 @@ public class MainActivity extends AppCompatActivity implements
     Dialog dialog01;
     Dialog menu_dialog;
 
+    Dialog update_dialog;
+
     LinearLayout likes_container;
 
     private boolean notify = false;
 
     private static final int REQUEST_CODE_UPDATE = 1014;
+
+    private static final String update_text = "- 좋아요/싫어요 기능 추가\n- 레이아웃 수정\n- 개발자 도와주기 버튼 추가\n- 업데이트 내역 업데이트시 출력\n- 개발자 : 항상 이용해주셔서 감사합니다.";
 
     private AppUpdateManager appUpdateManager;
     private InstallStateUpdatedListener installStateUpdatedListener;
@@ -218,7 +224,12 @@ public class MainActivity extends AppCompatActivity implements
 
     private String uuid;
 
-    @SuppressLint({"UseCompatLoadingForDrawables", "SetTextI18n", "NonConstantResourceId", "ClickableViewAccessibility", "DefaultLocale"})
+    int update_chk;
+
+    private final ArrayList<DocumentReference> docRefs = new ArrayList<>();
+    private DocumentReference updateRef;
+
+    @SuppressLint({"UseCompatLoadingForDrawables", "SetTextI18n", "NonConstantResourceId", "ClickableViewAccessibility", "DefaultLocale", "MissingInflatedId"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -228,9 +239,21 @@ public class MainActivity extends AppCompatActivity implements
         MobileAds.initialize(this, initializationStatus -> {
         });
 
+        for (int i = 0; i < 3; i++) {
+            ArrayList<Integer> innerList = new ArrayList<>();
+            for (int j = 0; j < 3; j++) {
+                innerList.add(0);
+            }
+            innerList.add(-1);
+            vote_stats.add(innerList);
+        }
+
         // Firestore 인스턴스 초기화
         db = FirebaseFirestore.getInstance();
-        updateButtonWidths();
+        docRefs.add(db.collection("whats-meal").document("morning_likes"));
+        docRefs.add(db.collection("whats-meal").document("sun_likes"));
+        docRefs.add(db.collection("whats-meal").document("moon_likes"));
+        updateRef = db.collection("whats-meal-update").document("mzSjXwOsExOhsdSJd8bb");
         LinearLayout view_page = findViewById(R.id.view_page);
         appUpdateManager = AppUpdateManagerFactory.create(this);
 
@@ -272,7 +295,21 @@ public class MainActivity extends AppCompatActivity implements
         alarm_food_name = pref.getString("alarm_food_name", "천안");
         alarm_food_type_name = pref.getString("alarm_food_type_name", "기숙사 식당");
         uuid = getStoredUUID();
-        vote_stats = pref.getString("like_dislike","");
+        update_chk = pref.getInt("update_chk", 0);
+        vote_stats.get(0).set(0, pref.getInt("like_morning", 0));
+        vote_stats.get(0).set(1, pref.getInt("dislike_morning_", 0));
+        vote_stats.get(0).set(2, pref.getInt("vote_chk", -1));
+
+        vote_stats.get(1).set(0, pref.getInt("like_sun", 1));
+        vote_stats.get(1).set(1, pref.getInt("dislikesun", 1));
+        vote_stats.get(1).set(2, pref.getInt("vote_chk", -1));
+
+        vote_stats.get(2).set(0, pref.getInt("like_moon", 2));
+        vote_stats.get(2).set(1, pref.getInt("dislike_moon", 2));
+        vote_stats.get(1).set(2, pref.getInt("vote_chk", -1));
+
+
+        update_view = findViewById(R.id.update_text_view);
 
         cam_name = findViewById(R.id.cam_name);
         diner_name = findViewById(R.id.diner_type);
@@ -287,24 +324,16 @@ public class MainActivity extends AppCompatActivity implements
         share_btn = findViewById(R.id.share);
 
         like_btn = findViewById(R.id.like_button);
-        like_btn.setOnClickListener(view -> updateLikesCount("like"));
+        like_btn.setOnClickListener(view -> {
+            addUUIDToType("like");
+            updateLikesCount();
+        });
 
 
         hate_btn = findViewById(R.id.dislike_button);
-        hate_btn.setOnClickListener(view -> updateLikesCount("hate"));
-
-        checkIfUUIDExistsInArray(exists -> {
-            if (exists) {
-                if (vote_stats.equals("like")) {
-                    like_btn.setImageResource(R.drawable.true_like);
-                } else if (vote_stats.equals("dislike")) {
-                    hate_btn.setImageResource(R.drawable.true_dislike);
-                }
-            }else{
-                vote_stats = "";
-                editor.putString("like_dislike", vote_stats);
-                editor.apply();
-            }
+        hate_btn.setOnClickListener(view -> {
+            addUUIDToType("hate");
+            updateLikesCount();
         });
 
         dialog01 = new Dialog(MainActivity.this);
@@ -315,14 +344,21 @@ public class MainActivity extends AppCompatActivity implements
         params.height = LinearLayout.LayoutParams.WRAP_CONTENT;
         dialog01.getWindow().setAttributes(params);
 
-
         menu_dialog = new Dialog(MainActivity.this);
         menu_dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         menu_dialog.setContentView(R.layout.setting);
-        WindowManager.LayoutParams menu_params = menu_dialog.getWindow().getAttributes();
-        menu_params.width = LinearLayout.LayoutParams.MATCH_PARENT;
-        menu_params.height = LinearLayout.LayoutParams.WRAP_CONTENT;
-        menu_dialog.getWindow().setAttributes(menu_params);
+        WindowManager.LayoutParams params2 = menu_dialog.getWindow().getAttributes();
+        params2.width = LinearLayout.LayoutParams.MATCH_PARENT;
+        params2.height = LinearLayout.LayoutParams.WRAP_CONTENT;
+        menu_dialog.getWindow().setAttributes(params);
+
+        update_dialog = new Dialog(this);
+        update_dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        update_dialog.setContentView(R.layout.update_view);
+        WindowManager.LayoutParams update_params = update_dialog.getWindow().getAttributes();
+        update_params.width = LinearLayout.LayoutParams.MATCH_PARENT;
+        update_params.height = LinearLayout.LayoutParams.MATCH_PARENT;
+        update_dialog.getWindow().setAttributes(update_params);
 
         likes_container = findViewById(R.id.like_dislike_container);
 
@@ -378,7 +414,6 @@ public class MainActivity extends AppCompatActivity implements
             findViewById(R.id.sun_rise).performClick();
         } else if (nums == 1) {
             findViewById(R.id.sun).performClick();
-
         } else if (nums == 2) {
             findViewById(R.id.moon).performClick();
         }
@@ -418,12 +453,44 @@ public class MainActivity extends AppCompatActivity implements
             shareImage(imageUri);
         });
 
-        ad_btn.setOnClickListener(view ->{
-            loadAd();
-            showInterstitial();
-        });
-
+        ad_btn.setOnClickListener(view -> loadAd());
+        updateCheck();
     }
+
+    public void updateCheck() {
+
+        AtomicInteger update_v = new AtomicInteger();
+        db.runTransaction((Transaction.Function<Void>) transaction -> {
+            // 문서 가져오기
+            DocumentSnapshot snapshot = transaction.get(updateRef);
+            update_v.set((Objects.requireNonNull(snapshot.getLong("version"))).intValue());
+            return null;
+        }).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                runOnUiThread(() -> {
+                    if (update_chk != update_v.get()) {
+                        editor.putInt("update_chk", update_v.get());
+                        editor.apply();
+                        update_dialog.show(); // 다이얼로그 띄우기
+                        update_dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                        TextView app_version = update_dialog.findViewById(R.id.app_version);
+                        app_version.setText(getVersion(this));
+
+                        TextView update_text_view = update_dialog.findViewById(R.id.update_text_view);
+                        update_text_view.setText(update_text);
+
+                        update_dialog.findViewById(R.id.confirm_btn).setOnClickListener(view -> {
+                            update_dialog.dismiss(); // 다이얼로그 닫기
+                        });
+                    }
+                });
+                Log.d("Transaction", "Success");
+            } else {
+                Log.d("Transaction", "Failure", task.getException());
+            }
+        });
+    }
+
 
     public static String generateUUID() {
         UUID uuid = UUID.randomUUID();
@@ -440,101 +507,99 @@ public class MainActivity extends AppCompatActivity implements
         }
 
         return uuid;
-    }public interface UUIDExistsCallback {
-        void onResult(boolean exists);
-    }
-    private void checkIfUUIDExistsInArray(UUIDExistsCallback callback) {
-        db.collection("whats-meal")
-                .whereArrayContains("uuid", uuid)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        callback.onResult(!task.getResult().isEmpty());
-                    } else {
-                        Log.d(TAG, "get fail with : ", task.getException());
-                        callback.onResult(false);
-                    }
-                });
     }
     private void updateButtonWidths() {
-        AtomicInteger likes = new AtomicInteger();
-        AtomicInteger dislikes = new AtomicInteger();
-        DocumentReference docRef = db.collection("whats-meal").document("UONJD4v5ZgCEdfTAHt9F");
+        DocumentReference docRef = docRefs.get(nums);
+        docRef.get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    List<String> likeList = (List<String>) documentSnapshot.get("like");
+                    List<String> hateList = (List<String>) documentSnapshot.get("hate");
+                    int like_cnt = likeList != null ? likeList.size() : 1;
+                    int hate_cnt = hateList != null ? hateList.size() : 1;
+                    runOnUiThread(() -> {
+                        float total = hate_cnt + like_cnt;
+                        float likeWeight = like_cnt / total;
+                        float dislikeWeight = hate_cnt / total;
 
-        // 트랜잭션 실행
-        db.runTransaction((Transaction.Function<Void>) transaction -> {
-            // 문서 가져오기
-            DocumentSnapshot snapshot = transaction.get(docRef);
-            likes.set(Objects.requireNonNull(snapshot.getLong("like")).intValue());
-            dislikes.set(Objects.requireNonNull(snapshot.getLong("hate")).intValue());
-            return null;
-        }).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                runOnUiThread(() -> {
-                    float total = likes.get() + dislikes.get();
-                    float likeWeight = likes.get() / total;
-                    float dislikeWeight = dislikes.get() / total;
-
-                    LinearLayout.LayoutParams likeParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, likeWeight);
-                    LinearLayout.LayoutParams dislikeParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, dislikeWeight);
-                    like_btn.setLayoutParams(likeParams);
-                    hate_btn.setLayoutParams(dislikeParams);
+                        LinearLayout.LayoutParams likeParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, likeWeight);
+                        LinearLayout.LayoutParams dislikeParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, dislikeWeight);
+                        like_btn.setLayoutParams(likeParams);
+                        hate_btn.setLayoutParams(dislikeParams);
+                    });
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Error getting UUIDs count in like field", e);
                 });
-                Log.d("Transaction", "Success");
+    }
+
+    public void checkIfUUIDExists(UUIDCheckResultCallback callback) {
+        DocumentReference docRef = docRefs.get(nums);
+
+        docRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot document = task.getResult();
+                if (document != null) {
+                    List<String> likeList = (List<String>) document.get("like");
+                    List<String> hateList = (List<String>) document.get("hate");
+
+                    boolean uuidExistsInLike = likeList != null && likeList.contains(uuid);
+                    boolean uuidExistsInHate = hateList != null && hateList.contains(uuid);
+
+                    if (uuidExistsInLike) {
+                        callback.onResult(true, "like");
+                    } else if (uuidExistsInHate) {
+                        callback.onResult(true, "hate");
+                    } else {
+                        callback.onResult(false, "");
+                    }
+                } else {
+                    Log.d(TAG, "No such document");
+                    callback.onResult(false, "");
+                }
             } else {
-                Log.d("Transaction", "Failure", task.getException());
+                Log.d(TAG, "get failed with ", task.getException());
+                callback.onResult(false, "");
             }
         });
     }
 
+    public interface UUIDCheckResultCallback {
+        void onResult(boolean exists, String type);
+    }
 
-    private void updateLikesCount(String types) {
-        updateButtonWidths();
-        if (!vote_stats.equals("")){
-            Toast.makeText(getApplicationContext(), "하루에 한번만 가능합니다.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        DocumentReference docRef = db.collection("whats-meal").document("UONJD4v5ZgCEdfTAHt9F");
-        checkIfUUIDExistsInArray(exists -> {
+    public void addUUIDToType(String types) {
+        checkIfUUIDExists((exists, type) -> {
             if (!exists) {
-                // 트랜잭션 실행
-                db.collection("whats-meal")
-                        .document("UONJD4v5ZgCEdfTAHt9F")
-                        .update("uuid", FieldValue.arrayUnion(uuid));
-                db.runTransaction((Transaction.Function<Void>) transaction -> {
-                    // 문서 가져오기
-                    DocumentSnapshot snapshot = transaction.get(docRef);
-                    // 기존 'like' 및 'hate' 값을 가져온 후 +1 증가
-
-                    if (Objects.equals(types, "like")) {
-                        editor.putString("like_dislike", "like");
-                        Long likeValue = snapshot.getLong("like");
-                        long newLikeValue = (likeValue != null ? likeValue : 0) + 1;
-                        // 새로운 값으로 'like' 및 'hate' 업데이트
-                        transaction.update(docRef, "like", newLikeValue);
-                        like_btn.setImageResource(R.drawable.true_like);
-                    } else {
-                        editor.putString("like_dislike", "dislike");
-                        Long likeValue = snapshot.getLong("hate");
-                        long newHateValue = (likeValue != null ? likeValue : 0) + 1;
-                        // 새로운 값으로 'like' 및 'hate' 업데이트
-                        transaction.update(docRef, "hate", newHateValue);
-                        hate_btn.setImageResource(R.drawable.true_dislike);
-
-                    }
-                    editor.apply();
-
-                    return null;
-                }).addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Log.d("Transaction", "Success");
-                        Toast.makeText(getApplicationContext(), "투표 완료", Toast.LENGTH_SHORT).show();
-                        updateButtonWidths();
-                    } else {
-                        Log.d("Transaction", "Failure", task.getException());
-                    }
-                });
+                DocumentReference docRef = docRefs.get(nums);
+                docRef.update(types, FieldValue.arrayUnion(uuid))
+                        .addOnSuccessListener(aVoid -> Log.d(TAG, "UUID added to " + types))
+                        .addOnFailureListener(e -> Log.w(TAG, "Error adding UUID to " + types, e));
+                updateLikesCount();
+            } else {
+                Toast.makeText(getApplicationContext(), "하루에 1번만 가능합니다.", Toast.LENGTH_SHORT).show();
             }
+        });
+
+    }
+
+    private void updateLikesCount() {
+        checkIfUUIDExists((exists, type) -> {
+            if (exists) {
+                Log.d(TAG, "UUID exists in: " + type);
+                if (Objects.equals(type, "like")) {
+                    like_btn.setImageResource(R.drawable.true_like);
+                    hate_btn.setImageResource(R.drawable.false_dislike);
+                } else{
+                    hate_btn.setImageResource(R.drawable.true_dislike);
+                    like_btn.setImageResource(R.drawable.false_like);
+                }
+                editor.apply();
+            }else{
+                hate_btn.setImageResource(R.drawable.false_dislike);
+                like_btn.setImageResource(R.drawable.false_like);
+
+            }
+            updateButtonWidths();
         });
     }
 
@@ -544,7 +609,7 @@ public class MainActivity extends AppCompatActivity implements
         AdRequest adRequest = new AdRequest.Builder().build();
 
         InterstitialAd.load(this,
-                "ca-app-pub-3940256099942544/1033173712",
+                "ca-app-pub-4622337582094332/7152127242",
                 adRequest,
                 new InterstitialAdLoadCallback() {
                     @Override
@@ -574,20 +639,15 @@ public class MainActivity extends AppCompatActivity implements
                                         Log.d("ads", "Ad showed fullscreen content.");
                                     }
                                 });
+                        showInterstitial();
                     }
 
                     @Override
                     public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-                        // Handle the error
                         Log.i("ads", loadAdError.getMessage());
                         mInterstitialAd = null;
-
-                        @SuppressLint("DefaultLocale") String error =
-                                String.format(
-                                        "domain: %s, code: %d, message: %s",
-                                        loadAdError.getDomain(), loadAdError.getCode(), loadAdError.getMessage());
                         Toast.makeText(
-                                        MainActivity.this, "onAdFailedToLoad() with error: " + error, Toast.LENGTH_SHORT)
+                                        MainActivity.this, "다시한번 눌러주세요.", Toast.LENGTH_SHORT)
                                 .show();
                     }
                 });
@@ -678,7 +738,6 @@ public class MainActivity extends AppCompatActivity implements
         Message msg = handler.obtainMessage();
         msg.setData(bundle);
         handler.sendMessage(msg);
-        updateButtonWidths();
     }
 
     @SuppressLint("UseCompatLoadingForDrawables")
@@ -775,14 +834,15 @@ public class MainActivity extends AppCompatActivity implements
         @SuppressLint({"SetTextI18n", "UseCompatLoadingForDrawables"})
         @Override
         public void handleMessage(Message msg) {
-            Bundle bundle = msg.getData();
             int temp_num = nums;
+            Bundle bundle = msg.getData();
             nums = Integer.parseInt(bundle.getString("numbers"));
             new Thread(() -> {
                 switch (nums) {
                     case 0:
                     case 1:
                     case 2:
+                        updateLikesCount();
                         food_type.setText(food_time_name[nums]);
                         editor.putInt("select_time", nums);
                         editor.apply();
@@ -980,19 +1040,20 @@ public class MainActivity extends AppCompatActivity implements
                     dialog01.dismiss(); // 다이얼로그 닫기
                 });
             } else { // 메뉴
-                nums = temp_num;
                 menu_dialog.show(); // 다이얼로그 띄우기
                 menu_dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
                 TextView app_version = menu_dialog.findViewById(R.id.app_version);
                 app_version.setText(getVersion(this));
                 menu_dialog.findViewById(R.id.confirm_btn).setOnClickListener(view -> {
-
+                    nums = temp_num;
                     if (nums == 0) {
                         findViewById(R.id.sun_rise).performClick();
                     } else if (nums == 1) {
                         findViewById(R.id.sun).performClick();
 
                     } else if (nums == 2) {
+                        findViewById(R.id.moon).performClick();
+                    } else{
                         findViewById(R.id.moon).performClick();
                     }
                     menu_dialog.dismiss(); // 다이얼로그 닫기
@@ -1056,7 +1117,7 @@ public class MainActivity extends AppCompatActivity implements
         Elements thElements = document.select("thead tr th");
         Element onElement = document.select("th.on").first();
         select = (onElement != null) ? thElements.indexOf(onElement) - 1 : 6;
-        if (today_select == -1){
+        if (today_select == -1) {
             today_select = select;
         }
         String regex = "(\\d{2}\\.\\d{2} )";
@@ -1100,7 +1161,7 @@ public class MainActivity extends AppCompatActivity implements
         }
         List<String> list = Arrays.asList(elements.select("td[data-mqtitle='date']").text().replace(" ", "").split("일"));
         select = list.indexOf(month + "월" + String.format("%02d", day));
-        if (today_select == -1){
+        if (today_select == -1) {
             today_select = select;
         }
     }
@@ -1122,13 +1183,14 @@ public class MainActivity extends AppCompatActivity implements
             } else {
                 food_menu.addView(makeMenu("밥 없어요~!!"));
             }
-            if (today_select == select){
-                    likes_container.setVisibility(View.VISIBLE);
-                    ad_container.setVisibility(View.GONE);
-            }else if (today_select != -1){
-                    likes_container.setVisibility(View.GONE); // 이것으로 가시성을 INVISIBLE로 설정합니다.
-                    ad_container.setVisibility(View.VISIBLE);
+            if (today_select == select) {
+                likes_container.setVisibility(View.VISIBLE);
+                ad_container.setVisibility(View.GONE);
+            } else if (today_select != -1) {
+                likes_container.setVisibility(View.GONE); // 이것으로 가시성을 INVISIBLE로 설정합니다.
+                ad_container.setVisibility(View.VISIBLE);
             }
+            updateButtonWidths();
         });
     }
 
