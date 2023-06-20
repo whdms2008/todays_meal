@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "46874473755",
+    "project_id": "whats-meal-3b386",
+    "storage_bucket": "whats-meal-3b386.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:46874473755:android:a289fe5be157e791440fbe",
+        "android_client_info": {
+          "package_name": "com.whats_meal.term_project"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "46874473755-rgu56qst5t89gm08mvjo56gelppuj3bu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAersGn1gJl7H0Ei-aBB-XbmAG-XB7qFA0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "46874473755-rgu56qst5t89gm08mvjo56gelppuj3bu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
