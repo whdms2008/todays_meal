@@ -614,9 +614,11 @@ public class MainActivity extends AppCompatActivity implements
 
         AdRequest adRequest = new AdRequest.Builder().build();
 
+        // "ca-app-pub-4622337582094332/7152127242"
+
         // 'InterstitialAd' 대신 'RewardedAd'를 로드합니다.
         RewardedAd.load(this,
-                "ca-app-pub-4622337582094332/7152127242",
+                "ca-app-pub-3940256099942544/5224354917",
                 adRequest,
                 new RewardedAdLoadCallback() {
                     @Override
@@ -627,34 +629,24 @@ public class MainActivity extends AppCompatActivity implements
                         mRewardedAd.setFullScreenContentCallback(new FullScreenContentCallback(){
                             @Override
                             public void onAdDismissedFullScreenContent() {
-                                // Called when fullscreen content is dismissed.
-                                Log.d("ads", "Ad was dismissed.");
-                                // Don't forget to set the ad reference to null so you don't show the ad a second time.
                                 mRewardedAd = null;
-                                loadAd();
                             }
 
                             @Override
                             public void onAdFailedToShowFullScreenContent(@NonNull AdError adError) {
-                                // Called when fullscreen content failed to show.
-                                Log.d("ads", "Ad failed to show.");
                                 mRewardedAd = null;
                             }
 
                             @Override
                             public void onAdShowedFullScreenContent() {
-                                // Called when fullscreen content is shown.
-                                Log.d("ads", "Ad showed fullscreen content.");
-                                // Ensure to nullify the ad reference here, as the ad won't be usable anymore.
                                 mRewardedAd = null;
                             }
                         });
-                        showRewardedAd(); // 보상형 광고를 보여줄 준비가 되면 이 메소드를 호출합니다.
+                        showRewardedAd();
                     }
 
                     @Override
                     public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-                        // Handle the error.
                         Log.i("ads", loadAdError.getMessage());
                         mRewardedAd = null;
                     }
@@ -666,7 +658,6 @@ public class MainActivity extends AppCompatActivity implements
             Activity activityContext = MainActivity.this;
             mRewardedAd.show(activityContext, rewardItem -> {
                 Toast.makeText(this, "도움 주셔서 감사합니다.", Toast.LENGTH_SHORT).show();
-                // Here, you can define what the user gets after watching the ad.
                 Log.d("ads", "User earned the reward.");
             });
         } else {
@@ -674,15 +665,6 @@ public class MainActivity extends AppCompatActivity implements
             Log.d("ads", "The rewarded ad wasn't ready yet.");
         }
     }
-
-//    private void showInterstitial() {
-//        if (mInterstitialAd != null) {
-//            mInterstitialAd.show(this);
-//            Toast.makeText(this, "도움 주셔서 감사합니다.", Toast.LENGTH_SHORT).show();
-//        } else {
-//            Toast.makeText(this, "다시한번 눌러주세요.", Toast.LENGTH_SHORT).show();
-//        }
-//    }
 
     private Bitmap captureScreen() {
         View rootView = getWindow().getDecorView().getRootView();
