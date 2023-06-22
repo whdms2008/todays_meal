@@ -102,8 +102,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements
-        GestureDetector.OnGestureListener,
-        GestureDetector.OnDoubleTapListener {
+        GestureDetector.OnGestureListener{
 
     private Calendar calendar;
     private AlarmManager alarmManager;
@@ -213,7 +212,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private boolean notify = false;
 
-    private static final int REQUEST_CODE_UPDATE = 1014;
+    private static final int REQUEST_CODE_UPDATE = 1015;
 
     private static final String update_text = "- 좋아요/싫어요 기능 추가\n- 레이아웃 수정\n- 개발자 도와주기 버튼 추가\n- 업데이트 내역 업데이트시 출력\n- 개발자 : 항상 이용해주셔서 감사합니다.";
 
@@ -222,7 +221,6 @@ public class MainActivity extends AppCompatActivity implements
 
     private GestureDetector gestureDetector;
 
-    private InterstitialAd mInterstitialAd;
 
     private FirebaseFirestore db;
 
@@ -1260,27 +1258,6 @@ public class MainActivity extends AppCompatActivity implements
 
         editor.putString("week_menus", json);
         editor.apply();
-    }
-
-
-    @Override
-    public boolean onSingleTapConfirmed(@NonNull MotionEvent e) {
-        return false;
-    }
-
-    @Override
-    public boolean onDoubleTap(@NonNull MotionEvent e) {
-        if (mInterstitialAd != null) {
-            mInterstitialAd.show(MainActivity.this);
-        } else {
-            Log.d("TAG", "The interstitial ad wasn't ready yet.");
-        }
-        return false;
-    }
-
-    @Override
-    public boolean onDoubleTapEvent(@NonNull MotionEvent e) {
-        return false;
     }
 
     @Override
